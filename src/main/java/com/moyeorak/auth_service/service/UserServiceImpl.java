@@ -1,13 +1,17 @@
 package com.moyeorak.auth_service.service;
 
+import com.moyeorak.auth_service.dto.UserResponseDto;
 import com.moyeorak.auth_service.dto.UserSignupRequestDto;
 import com.moyeorak.auth_service.dto.UserSignupResponseDto;
+import com.moyeorak.auth_service.dto.UserUpdateRequestDto;
 import com.moyeorak.auth_service.entity.User;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.util.function.Consumer;
 
 @Service
 @RequiredArgsConstructor
@@ -53,6 +57,38 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
+    // ✅ 내 정보 조회
+    @Override
+    public UserResponseDto getMyInfo(String email) {
+        User user = getUserByEmail(email);
+        return UserResponseDto.fromEntity(user);
+    }
+
+    @Transactional
+    @Override
+    public UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto) {
+        User user = getUserByEmail(email);
+
+        updateIfChanged(dto.getEmail(), user.getEmail(), newEmail -> {
+            validateDuplicateEmail(newEmail);
+            user.setEmail(newEmail.trim().toLowerCase());
+        });
+
+        updateIfChanged(dto.getPhone(), user.getPhone(), newPhone -> {
+            validateDuplicatePhone(newPhone);
+            user.setPhone(newPhone.trim());
+        });
+
+        updateIfChanged(dto.getName(), user.getName(), user::setName);
+
+        if (dto.getGender() != null && !dto.getGender().equals(user.getGender())) {
+            user.setGender(dto.getGender());
+        }
+
+        updateIfChanged(dto.getRegionId(), user.getRegionId(), user::setRegionId);
+
+        return UserResponseDto.fromEntity(user);
+    }
 
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email.trim().toLowerCase())) {
@@ -63,6 +99,19 @@ public class UserServiceImpl implements UserService {
     private void validateDuplicatePhone(String phone) {
         if (userRepository.existsByPhone(phone.trim())) {
             throw new IllegalArgumentException("이미 존재하는 전화번호입니다.");
+        }
+    }
+
+    // 사용자 단건 조회 유틸
+    private User getUserByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+    }
+
+    // 값 변경 감지 유틸
+    private <T> void updateIfChanged(T newValue, T currentValue, Consumer<T> updater) {
+        if (newValue != null && !newValue.equals(currentValue)) {
+            updater.accept(newValue);
         }
     }
 

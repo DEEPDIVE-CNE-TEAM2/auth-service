@@ -1,8 +1,11 @@
 package com.moyeorak.auth_service.service;
 
+import com.moyeorak.auth_service.dto.TokenResponseDto;
 import com.moyeorak.auth_service.dto.UserLoginRequestDto;
 import com.moyeorak.auth_service.dto.UserLoginResponseDto;
 import com.moyeorak.auth_service.entity.User;
+import com.moyeorak.auth_service.exception.BusinessException;
+import com.moyeorak.auth_service.exception.ErrorCode;
 import com.moyeorak.auth_service.security.JwtProvider;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -36,4 +39,42 @@ public class AuthServiceImpl implements AuthService {
         return new UserLoginResponseDto("로그인 완료", "Bearer " + accessToken, refreshToken);
     }
 
+    @Override
+    public void logout(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
+
+        user.setRefreshToken(null);
+        userRepository.save(user);
+    }
+
+    @Override
+    public TokenResponseDto refreshAccessToken(String refreshToken) {
+        // 1. Refresh Token 유효성 검증
+        if (!jwtProvider.validateToken(refreshToken)) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // 2. Refresh Token에서 이메일 추출
+        String email = jwtProvider.getEmail(refreshToken);
+
+        // 3. 사용자 조회
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
+
+        // 4. DB에 저장된 Refresh Token과 일치 여부 확인
+        if (!refreshToken.equals(user.getRefreshToken())) {
+            throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
+        }
+
+        // 5. 새 Access Token / Refresh Token 발급
+        String newAccessToken = jwtProvider.generateToken(email, user.getRole().name());
+        String newRefreshToken = jwtProvider.generateRefreshToken(email);
+
+        // 6. Refresh Token 갱신
+        user.setRefreshToken(newRefreshToken);
+        userRepository.save(user);
+
+        return new TokenResponseDto("Bearer " + newAccessToken, newRefreshToken);
+    }
 }
