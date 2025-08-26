@@ -24,10 +24,10 @@ public class AuthServiceImpl implements AuthService {
     @Transactional
     public UserLoginResponseDto login(UserLoginRequestDto dto) {
         User user = userRepository.findByEmail(dto.getEmail())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 이메일입니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
         String accessToken = jwtProvider.generateToken(user.getEmail(), user.getRole().name());
@@ -50,28 +50,26 @@ public class AuthServiceImpl implements AuthService {
 
     @Override
     public TokenResponseDto refreshAccessToken(String refreshToken) {
-        // 1. Refresh Token 유효성 검증
+        // Refresh Token 유효성 검증 후 이메일 추출
         if (!jwtProvider.validateToken(refreshToken)) {
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
-
-        // 2. Refresh Token에서 이메일 추출
         String email = jwtProvider.getEmail(refreshToken);
 
-        // 3. 사용자 조회
+        // 사용자 조회
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
 
-        // 4. DB에 저장된 Refresh Token과 일치 여부 확인
+        // DB에 저장된 Refresh Token과 일치 여부 확인
         if (!refreshToken.equals(user.getRefreshToken())) {
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
-        // 5. 새 Access Token / Refresh Token 발급
+        // 새 Access Token / Refresh Token 발급
         String newAccessToken = jwtProvider.generateToken(email, user.getRole().name());
         String newRefreshToken = jwtProvider.generateRefreshToken(email);
 
-        // 6. Refresh Token 갱신
+        // Refresh Token 갱신
         user.setRefreshToken(newRefreshToken);
         userRepository.save(user);
 
