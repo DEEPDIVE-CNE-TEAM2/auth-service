@@ -11,5 +11,9 @@ public interface UserService {
     UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto);
     void changePassword(String email, UserPasswordChangeRequestDto dto);
     void deleteUser(String email, UserDeleteRequestDto dto);
+    boolean isEmailDuplicate(String email);
 
+    boolean isPhoneDuplicate(String phone);
+
+    boolean verifyPassword(String email, String password);
 }

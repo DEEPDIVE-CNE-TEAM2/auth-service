@@ -10,6 +10,8 @@ import com.moyeorak.auth_service.security.CustomUserDetails;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/api/users")
@@ -79,5 +81,29 @@ public class UserController {
     ) {
         userService.deleteUser(user.getEmail(), dto);
         return ResponseEntity.ok().build();
+    }
+
+    // 이메일 중복 확인
+    @GetMapping("/check-email")
+    public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email) {
+        boolean isDuplicate = userService.isEmailDuplicate(email);
+        return ResponseEntity.ok(Map.of("isDuplicate", isDuplicate));
+    }
+
+    // 휴대폰 번호 중복 확인
+    @GetMapping("/check-phone")
+    public ResponseEntity<Map<String, Boolean>> checkPhoneDuplicate(@RequestParam String phone) {
+        boolean isDuplicate = userService.isPhoneDuplicate(phone);
+        return ResponseEntity.ok(Map.of("isDuplicate", isDuplicate));
+    }
+
+    //  비밀번호 검증
+    @PostMapping("/verify-password")
+    public ResponseEntity<PasswordVerifyResponseDto> verifyPassword(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody @Valid PasswordVerifyRequestDto dto
+    ) {
+        boolean matched = userService.verifyPassword(user.getEmail(), dto.getPassword());
+        return ResponseEntity.ok(new PasswordVerifyResponseDto(matched));
     }
 }

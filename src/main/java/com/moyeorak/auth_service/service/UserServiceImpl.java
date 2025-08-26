@@ -156,5 +156,24 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    // 이메일 중복 확인
+    @Override
+    public boolean isEmailDuplicate(String email) {
+        return userRepository.existsByEmail(email.trim().toLowerCase());
+    }
+
+    // 휴대폰 번호 중복 확인
+    @Override
+    public boolean isPhoneDuplicate(String phone) {
+        return userRepository.existsByPhone(phone.trim());
+    }
+
+    // 비밀번호 검증
+    @Override
+    public boolean verifyPassword(String email, String password) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        return passwordEncoder.matches(password, user.getPassword());
+    }
 
 }
