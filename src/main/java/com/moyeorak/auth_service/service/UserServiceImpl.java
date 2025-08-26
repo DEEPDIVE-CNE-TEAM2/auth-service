@@ -2,6 +2,8 @@ package com.moyeorak.auth_service.service;
 
 import com.moyeorak.auth_service.dto.*;
 import com.moyeorak.auth_service.entity.User;
+import com.moyeorak.auth_service.exception.BusinessException;
+import com.moyeorak.auth_service.exception.ErrorCode;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +19,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    // 회원가입
     @Transactional
     public UserSignupResponseDto signup(UserSignupRequestDto dto) {
         // 입력값 전처리
@@ -25,7 +28,7 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 확인 검증
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
         // 이메일 번호 중복 검증
@@ -54,13 +57,14 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    // ✅ 내 정보 조회
+    // 내 정보 조회
     @Override
     public UserResponseDto getMyInfo(String email) {
         User user = getUserByEmail(email);
         return UserResponseDto.fromEntity(user);
     }
 
+    // 정보 수정
     @Transactional
     @Override
     public UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto) {
@@ -87,6 +91,7 @@ public class UserServiceImpl implements UserService {
         return UserResponseDto.fromEntity(user);
     }
 
+    // 비번 변경
     @Transactional
     @Override
     public void changePassword(String email, UserPasswordChangeRequestDto dto) {
@@ -94,23 +99,24 @@ public class UserServiceImpl implements UserService {
 
         // 현재 비밀번호 검증
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
         // 새 비밀번호 & 확인 비밀번호 검증
         if (!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
-            throw new IllegalArgumentException("새 비밀번호와 확인 값이 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
         // 동일 비밀번호 재사용 방지
         if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("이전과 동일한 비밀번호는 사용할 수 없습니다.");
+            throw new BusinessException(ErrorCode.SAME_PASSWORD);
         }
 
         // 새 비밀번호 저장
         user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
     }
 
+    // 회원탈퇴
     @Transactional
     @Override
     public void deleteUser(String email, UserDeleteRequestDto dto) {
@@ -118,12 +124,12 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 & 확인 비밀번호 일치 여부 검증
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
         // 비밀번호 검증
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
         // 탈퇴 처리
@@ -131,22 +137,24 @@ public class UserServiceImpl implements UserService {
     }
 
 
+    // 이메일 중복 여부
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email.trim().toLowerCase())) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new BusinessException(ErrorCode.EMAIL_DUPLICATED);
         }
     }
 
+    // 번호 중복 여부
     private void validateDuplicatePhone(String phone) {
         if (userRepository.existsByPhone(phone.trim())) {
-            throw new IllegalArgumentException("이미 존재하는 전화번호입니다.");
+            throw new BusinessException(ErrorCode.PHONE_DUPLICATED);
         }
     }
 
     // 사용자 단건 조회 유틸
     private User getUserByEmail(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
     }
 
     // 값 변경 감지 유틸
@@ -172,7 +180,7 @@ public class UserServiceImpl implements UserService {
     @Override
     public boolean verifyPassword(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
         return passwordEncoder.matches(password, user.getPassword());
     }
 

@@ -34,7 +34,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     // 인증 불필요한 경로 → 필터 스킵
     private static final List<String> PUBLIC_URLS = List.of(
             "/api/users/signup",
-            "/api/users/login",
+            "/api/auth/login",
             "/swagger-ui",
             "/v3/api-docs"
     );

@@ -40,7 +40,7 @@ public class SecurityConfig {
                         // --- 공개 엔드포인트 ---
                         .requestMatchers(
                                 "/api/users/signup",
-                                "/api/users/login",
+                                "/api/auth/login",
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",

@@ -3,6 +3,7 @@ package com.moyeorak.auth_service.controller;
 import com.moyeorak.auth_service.dto.*;
 import com.moyeorak.auth_service.service.AuthService;
 import com.moyeorak.auth_service.service.UserService;
+import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,19 +21,19 @@ public class UserController {
 
     private final UserService userService;
 
-    // 회원가입
+    @Operation(summary = "회원가입")
     @PostMapping("/signup")
     public ResponseEntity<UserSignupResponseDto> signup(@Valid @RequestBody UserSignupRequestDto dto) {
         return ResponseEntity.ok(userService.signup(dto));
     }
 
-    // 내 정보 조회
+    @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
     public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) {
         return ResponseEntity.ok(userService.getMyInfo(user.getEmail()));
     }
 
-    // 내 정보 수정
+    @Operation(summary = "내 정보 수정")
     @PutMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyInfo(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -41,7 +42,7 @@ public class UserController {
         return ResponseEntity.ok(userService.updateUserInfo(user.getEmail(), dto));
     }
 
-    // 비밀번호 변경
+    @Operation(summary = "비밀번호 변경")
     @PatchMapping("/me/password")
     public ResponseEntity<Void> changePassword(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -51,7 +52,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // 회원 탈퇴
+    @Operation(summary = "회원가입")
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteUser(
             @AuthenticationPrincipal CustomUserDetails user,
@@ -61,21 +62,21 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    // 이메일 중복 확인
+    @Operation(summary = "이메일 중복 확인")
     @GetMapping("/check-email")
     public ResponseEntity<Map<String, Boolean>> checkEmailDuplicate(@RequestParam String email) {
         boolean isDuplicate = userService.isEmailDuplicate(email);
         return ResponseEntity.ok(Map.of("isDuplicate", isDuplicate));
     }
 
-    // 휴대폰 번호 중복 확인
+    @Operation(summary = "번호 중복 확인")
     @GetMapping("/check-phone")
     public ResponseEntity<Map<String, Boolean>> checkPhoneDuplicate(@RequestParam String phone) {
         boolean isDuplicate = userService.isPhoneDuplicate(phone);
         return ResponseEntity.ok(Map.of("isDuplicate", isDuplicate));
     }
 
-    //  비밀번호 검증
+    @Operation(summary = "비밀번호 검증")
     @PostMapping("/verify-password")
     public ResponseEntity<PasswordVerifyResponseDto> verifyPassword(
             @AuthenticationPrincipal CustomUserDetails user,
