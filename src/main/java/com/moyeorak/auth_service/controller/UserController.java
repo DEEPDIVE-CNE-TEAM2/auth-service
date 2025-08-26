@@ -52,7 +52,7 @@ public class UserController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(summary = "회원가입")
+    @Operation(summary = "회원탈퇴")
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteUser(
             @AuthenticationPrincipal CustomUserDetails user,
