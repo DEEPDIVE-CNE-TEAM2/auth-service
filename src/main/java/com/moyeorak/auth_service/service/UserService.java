@@ -1,9 +1,6 @@
 package com.moyeorak.auth_service.service;
 
-import com.moyeorak.auth_service.dto.UserResponseDto;
-import com.moyeorak.auth_service.dto.UserSignupRequestDto;
-import com.moyeorak.auth_service.dto.UserSignupResponseDto;
-import com.moyeorak.auth_service.dto.UserUpdateRequestDto;
+import com.moyeorak.auth_service.dto.*;
 
 public interface UserService {
 
@@ -12,5 +9,7 @@ public interface UserService {
     UserResponseDto getMyInfo(String email);
 
     UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto);
+    void changePassword(String email, UserPasswordChangeRequestDto dto);
+    void deleteUser(String email, UserDeleteRequestDto dto);
 
 }

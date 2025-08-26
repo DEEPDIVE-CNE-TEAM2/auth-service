@@ -1,9 +1,6 @@
 package com.moyeorak.auth_service.service;
 
-import com.moyeorak.auth_service.dto.UserResponseDto;
-import com.moyeorak.auth_service.dto.UserSignupRequestDto;
-import com.moyeorak.auth_service.dto.UserSignupResponseDto;
-import com.moyeorak.auth_service.dto.UserUpdateRequestDto;
+import com.moyeorak.auth_service.dto.*;
 import com.moyeorak.auth_service.entity.User;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -89,6 +86,50 @@ public class UserServiceImpl implements UserService {
 
         return UserResponseDto.fromEntity(user);
     }
+
+    @Transactional
+    @Override
+    public void changePassword(String email, UserPasswordChangeRequestDto dto) {
+        User user = getUserByEmail(email);
+
+        // 현재 비밀번호 검증
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호 & 확인 비밀번호 검증
+        if (!dto.getNewPassword().equals(dto.getConfirmNewPassword())) {
+            throw new IllegalArgumentException("새 비밀번호와 확인 값이 일치하지 않습니다.");
+        }
+
+        // 동일 비밀번호 재사용 방지
+        if (passwordEncoder.matches(dto.getNewPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("이전과 동일한 비밀번호는 사용할 수 없습니다.");
+        }
+
+        // 새 비밀번호 저장
+        user.setPassword(passwordEncoder.encode(dto.getNewPassword()));
+    }
+
+    @Transactional
+    @Override
+    public void deleteUser(String email, UserDeleteRequestDto dto) {
+        User user = getUserByEmail(email);
+
+        // 비밀번호 & 확인 비밀번호 일치 여부 검증
+        if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+            throw new IllegalArgumentException("비밀번호와 비밀번호 확인이 일치하지 않습니다.");
+        }
+
+        // 비밀번호 검증
+        if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+        }
+
+        // 탈퇴 처리
+        userRepository.delete(user);
+    }
+
 
     private void validateDuplicateEmail(String email) {
         if (userRepository.existsByEmail(email.trim().toLowerCase())) {

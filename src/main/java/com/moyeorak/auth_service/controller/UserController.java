@@ -60,4 +60,24 @@ public class UserController {
     ) {
         return ResponseEntity.ok(userService.updateUserInfo(user.getEmail(), dto));
     }
+
+    // 비밀번호 변경
+    @PatchMapping("/me/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody @Valid UserPasswordChangeRequestDto dto
+    ) {
+        userService.changePassword(user.getEmail(), dto);
+        return ResponseEntity.ok().build();
+    }
+
+    // 회원 탈퇴
+    @DeleteMapping("/me")
+    public ResponseEntity<Void> deleteUser(
+            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestBody @Valid UserDeleteRequestDto dto
+    ) {
+        userService.deleteUser(user.getEmail(), dto);
+        return ResponseEntity.ok().build();
+    }
 }
