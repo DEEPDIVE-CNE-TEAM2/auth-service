@@ -10,5 +10,5 @@ public class UserSignupResponseDto {
     private String email;
     private String name;
     private String phone;
-    private Long regionId;;
+    private Long regionId;
 }
