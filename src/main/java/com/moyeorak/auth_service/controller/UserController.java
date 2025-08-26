@@ -19,34 +19,12 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final AuthService authService;
-
 
     // 회원가입
     @PostMapping("/signup")
     public ResponseEntity<UserSignupResponseDto> signup(@Valid @RequestBody UserSignupRequestDto dto) {
         return ResponseEntity.ok(userService.signup(dto));
     }
-
-    // 로그인
-    @PostMapping("/login")
-    public ResponseEntity<UserLoginResponseDto> login(@Valid @RequestBody UserLoginRequestDto dto) {
-        return ResponseEntity.ok(authService.login(dto));
-    }
-
-    // 로그아웃
-    @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
-        authService.logout(user.getEmail());
-        return ResponseEntity.ok().build();
-    }
-
-    // 액세스 토큰 재발급
-    @PostMapping("/refresh")
-    public ResponseEntity<TokenResponseDto> refresh(@RequestBody @Valid TokenRefreshRequestDto dto) {
-        return ResponseEntity.ok(authService.refreshAccessToken(dto.getRefreshToken()));
-    }
-
 
     // 내 정보 조회
     @GetMapping("/me")
