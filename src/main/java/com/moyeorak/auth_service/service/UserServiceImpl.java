@@ -2,8 +2,8 @@ package com.moyeorak.auth_service.service;
 
 import com.moyeorak.auth_service.dto.*;
 import com.moyeorak.auth_service.entity.User;
-import com.moyeorak.auth_service.exception.BusinessException;
-import com.moyeorak.auth_service.exception.ErrorCode;
+import com.moyeorak.common.exception.BusinessException;
+import com.moyeorak.common.exception.ErrorCode;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
