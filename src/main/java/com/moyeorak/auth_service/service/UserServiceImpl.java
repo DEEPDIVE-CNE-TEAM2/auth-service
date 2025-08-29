@@ -7,11 +7,13 @@ import com.moyeorak.common.exception.ErrorCode;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.function.Consumer;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
@@ -28,6 +30,7 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 확인 검증
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+            log.debug("회원가입 실패 - 비밀번호 확인 불일치. email: {}", email);
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
@@ -72,17 +75,20 @@ public class UserServiceImpl implements UserService {
 
         updateIfChanged(dto.getEmail(), user.getEmail(), newEmail -> {
             validateDuplicateEmail(newEmail);
+            log.debug("이메일 변경 - {} -> {}", user.getEmail(), newEmail);
             user.setEmail(newEmail.trim().toLowerCase());
         });
 
         updateIfChanged(dto.getPhone(), user.getPhone(), newPhone -> {
             validateDuplicatePhone(newPhone);
+            log.debug("전화번호 변경 - {} -> {}", user.getPhone(), newPhone);
             user.setPhone(newPhone.trim());
         });
 
         updateIfChanged(dto.getName(), user.getName(), user::setName);
 
         if (dto.getGender() != null && !dto.getGender().equals(user.getGender())) {
+            log.debug("성별 변경 - {} -> {}", user.getGender(), dto.getGender());
             user.setGender(dto.getGender());
         }
 
@@ -99,6 +105,7 @@ public class UserServiceImpl implements UserService {
 
         // 현재 비밀번호 검증
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            log.debug("비밀번호 변경 실패 - 현재 비밀번호 불일치. email: {}", email);
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
@@ -124,6 +131,7 @@ public class UserServiceImpl implements UserService {
 
         // 비밀번호 & 확인 비밀번호 일치 여부 검증
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
+            log.debug("회원탈퇴 실패 - 비밀번호 확인 불일치. email: {}", email);
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 

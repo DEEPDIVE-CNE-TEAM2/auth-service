@@ -28,20 +28,28 @@ public class AuthController {
     @Operation(summary = "로그인")
     @PostMapping("/login")
     public ResponseEntity<UserLoginResponseDto> login(@Valid @RequestBody UserLoginRequestDto dto) {
-        return ResponseEntity.ok(authService.login(dto));
+        log.info("로그인 요청 진입 - email: {}", dto.getEmail());
+        UserLoginResponseDto response = authService.login(dto);
+        log.info("로그인 완료");
+        return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
     public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
+        log.info("로그아웃 요청 진입 - email: {}", user.getEmail());
         authService.logout(user.getEmail());
+        log.info("로그아웃 완료 - email: {}", user.getEmail());
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "토큰 재발급")
     @PostMapping("/refresh")
     public ResponseEntity<TokenResponseDto> refresh(@RequestBody @Valid TokenRefreshRequestDto dto) {
-        return ResponseEntity.ok(authService.refreshAccessToken(dto.getRefreshToken()));
+        log.info("토큰 재발급 요청 진입");
+        TokenResponseDto response = authService.refreshAccessToken(dto.getRefreshToken());
+        log.info("토큰 재발급 완료");
+        return ResponseEntity.ok(response);
     }
 
 }

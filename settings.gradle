@@ -7,3 +7,6 @@ dependencyResolutionManagement {
         maven { url 'https://jitpack.io' }
     }
 }
+
+// 로컬 연결할때만
+includeBuild("../moyeorak-common")

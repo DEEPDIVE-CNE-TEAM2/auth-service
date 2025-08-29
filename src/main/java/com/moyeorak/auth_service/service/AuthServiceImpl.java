@@ -10,9 +10,11 @@ import com.moyeorak.auth_service.security.JwtProvider;
 import com.moyeorak.auth_service.repository.UserRepository;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AuthServiceImpl implements AuthService {
@@ -27,6 +29,7 @@ public class AuthServiceImpl implements AuthService {
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
 
         if (!passwordEncoder.matches(dto.getPassword(), user.getPassword())) {
+            log.debug("로그인 실패 - 비밀번호 불일치: {}", dto.getEmail());
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
@@ -52,6 +55,7 @@ public class AuthServiceImpl implements AuthService {
     public TokenResponseDto refreshAccessToken(String refreshToken) {
         // Refresh Token 유효성 검증 후 이메일 추출
         if (!jwtProvider.validateToken(refreshToken)) {
+            log.debug("Refresh Token 유효성 실패");
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
         String email = jwtProvider.getEmail(refreshToken);
@@ -62,6 +66,7 @@ public class AuthServiceImpl implements AuthService {
 
         // DB에 저장된 Refresh Token과 일치 여부 확인
         if (!refreshToken.equals(user.getRefreshToken())) {
+            log.debug("DB 저장된 Refresh Token 불일치 - email: {}", email);
             throw new BusinessException(ErrorCode.INVALID_REFRESH_TOKEN);
         }
 
