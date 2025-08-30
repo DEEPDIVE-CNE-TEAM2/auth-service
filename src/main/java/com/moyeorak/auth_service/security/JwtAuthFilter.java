@@ -16,6 +16,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.util.AntPathMatcher;
 import org.springframework.web.filter.OncePerRequestFilter;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,11 +34,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
     // 인증 불필요한 경로 → 필터 스킵
     private static final List<String> PUBLIC_URLS = List.of(
+            "/api/users/**",
             "/api/users/signup",
             "/api/auth/login",
-            "/swagger-ui",
-            "/v3/api-docs"
+            "/swagger-ui/**",
+            "/v3/api-docs/**"
     );
+
+    private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
@@ -46,7 +51,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         String path = request.getServletPath();
 
         // 공개 경로는 JWT 검증 스킵
-        if (PUBLIC_URLS.stream().anyMatch(path::startsWith)) {
+        if (PUBLIC_URLS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path))) {
             filterChain.doFilter(request, response);
             return;
         }
