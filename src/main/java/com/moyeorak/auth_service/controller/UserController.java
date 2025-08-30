@@ -27,7 +27,6 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
-    private final UserRepository userRepository;
 
 
     @Operation(summary = "회원가입")
@@ -113,15 +112,4 @@ public class UserController {
         return ResponseEntity.ok(new PasswordVerifyResponseDto(matched));
     }
 
-    @GetMapping("/{id}")
-    public UserDto getUserById(@PathVariable Long id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
-
-        return UserDto.builder()
-                .id(user.getId())
-                .email(user.getEmail())
-                .regionId(user.getRegionId())
-                .build();
-    }
 }

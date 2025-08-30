@@ -1,6 +1,7 @@
 package com.moyeorak.auth_service.service;
 
 import com.moyeorak.auth_service.dto.*;
+import com.moyeorak.auth_service.dto.feign.UserDto;
 
 public interface UserService {
 
@@ -16,4 +17,6 @@ public interface UserService {
     boolean isPhoneDuplicate(String phone);
 
     boolean verifyPassword(String email, String password);
+
+    public UserDto getUserDtoById(Long id);
 }
