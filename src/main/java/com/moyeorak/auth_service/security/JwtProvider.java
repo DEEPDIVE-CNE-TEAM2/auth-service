@@ -12,6 +12,8 @@ import org.springframework.stereotype.Component;
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -27,31 +29,19 @@ public class JwtProvider {
         this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    // 액세스 토큰 생성
-    public String generateToken(String email, String role) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 1000L * 60 * 30); // 30분
+    public String generateToken(String email, Long userId, String role) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
+        claims.put("roles", role);
 
-        return Jwts.builder()
-                .setSubject(email)
-                .claim("roles", role)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+        return createToken(email, claims, 1000L * 60 * 30);
     }
 
-    // 리프레시 토큰 생성
-    public String generateRefreshToken(String email) {
-        Date now = new Date();
-        Date expiryDate = new Date(now.getTime() + 1000L * 60 * 30); // 30분
+    public String generateRefreshToken(String email, Long userId) {
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("userId", userId);
 
-        return Jwts.builder()
-                .setSubject(email)
-                .setIssuedAt(now)
-                .setExpiration(expiryDate)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
+        return createToken(email, claims, 1000L * 60 * 60 * 24 * 14);
     }
 
 
@@ -74,6 +64,10 @@ public class JwtProvider {
         return parseClaims(token).get("roles", String.class);
     }
 
+    public Long getUserId(String token) {
+        return parseClaims(token).get("userId", Long.class);
+    }
+
     // 요청 헤더에서 Bearer 토큰 추출
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");
@@ -90,5 +84,18 @@ public class JwtProvider {
         } catch (JwtException | IllegalArgumentException e) {
             return false;
         }
+    }
+
+    private String createToken(String subject, Map<String, Object> claims, long expiryMillis) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expiryMillis);
+
+        return Jwts.builder()
+                .setSubject(subject)
+                .setClaims(claims)
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
+                .compact();
     }
 }

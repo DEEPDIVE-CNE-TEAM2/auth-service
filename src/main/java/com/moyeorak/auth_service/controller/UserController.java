@@ -1,8 +1,13 @@
 package com.moyeorak.auth_service.controller;
 
 import com.moyeorak.auth_service.dto.*;
+import com.moyeorak.auth_service.dto.feign.UserDto;
+import com.moyeorak.auth_service.entity.User;
+import com.moyeorak.auth_service.repository.UserRepository;
 import com.moyeorak.auth_service.service.AuthService;
 import com.moyeorak.auth_service.service.UserService;
+import com.moyeorak.common.exception.BusinessException;
+import com.moyeorak.common.exception.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +27,7 @@ import java.util.Map;
 public class UserController {
 
     private final UserService userService;
+
 
     @Operation(summary = "회원가입")
     @PostMapping("/signup")
@@ -105,4 +111,5 @@ public class UserController {
         log.info("비밀번호 검증 완료 - email: {}, matched: {}", user.getEmail(), matched);
         return ResponseEntity.ok(new PasswordVerifyResponseDto(matched));
     }
+
 }

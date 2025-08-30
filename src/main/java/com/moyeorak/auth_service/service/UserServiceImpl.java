@@ -1,6 +1,7 @@
 package com.moyeorak.auth_service.service;
 
 import com.moyeorak.auth_service.dto.*;
+import com.moyeorak.auth_service.dto.feign.UserDto;
 import com.moyeorak.auth_service.entity.User;
 import com.moyeorak.common.exception.BusinessException;
 import com.moyeorak.common.exception.ErrorCode;
@@ -192,4 +193,15 @@ public class UserServiceImpl implements UserService {
         return passwordEncoder.matches(password, user.getPassword());
     }
 
+
+    public UserDto getUserDtoById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
+
+        return UserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .regionId(user.getRegionId())
+                .build();
+    }
 }
