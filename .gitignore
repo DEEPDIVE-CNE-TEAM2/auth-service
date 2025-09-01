@@ -35,3 +35,5 @@ logs/
 ### Environment Configs (보안 중요) ###
 *.env
 application-local.yml
+
+src/main/resources/keys/private.pem
