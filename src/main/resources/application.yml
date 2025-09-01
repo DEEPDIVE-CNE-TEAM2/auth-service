@@ -16,7 +16,3 @@ spring:
         dialect: org.hibernate.dialect.MySQL8Dialect
     show-sql: false
 
-jwt:
-  secret: Y29tZXhhbXBsZWtleTEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MA==
-  access-token-validity: 3600000      # 1시간
-  refresh-token-validity: 1209600000  # 2주

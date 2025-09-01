@@ -59,6 +59,7 @@ public class User {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
+    @Column(name = "refresh_token", columnDefinition = "TEXT")
     private String refreshToken;
 
     @Column(name = "region_id")

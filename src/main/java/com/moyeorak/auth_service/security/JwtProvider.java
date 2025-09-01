@@ -1,80 +1,138 @@
-// JWT 생성, 파싱
 package com.moyeorak.auth_service.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
-import java.nio.charset.StandardCharsets;
-import java.security.Key;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.security.KeyFactory;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.security.spec.PKCS8EncodedKeySpec;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.*;
 
 @Slf4j
 @Component
 public class JwtProvider {
 
-    @Value("${jwt.secret}")
-    private String secret;
+    private PrivateKey privateKey;
 
-    private Key secretKey;
-
+    //RSA 개인키 로딩
     @PostConstruct
     public void init() {
-        this.secretKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+        try {
+            ClassPathResource resource = new ClassPathResource("keys/private.pem");
+            String key = Files.readString(resource.getFile().toPath());
+
+            key = key
+                    .replaceAll("-----BEGIN (.*)-----", "")
+                    .replaceAll("-----END (.*)-----", "")
+                    .replaceAll("\\s", ""); // 줄바꿈 제거
+
+            byte[] keyBytes = Base64.getDecoder().decode(key);
+            PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+
+            privateKey = factory.generatePrivate(spec);
+            log.info("RSA PrivateKey 로딩 완료");
+
+        } catch (IOException e) {
+            log.error("private.pem 파일 읽기 실패: {}", e.getMessage());
+        } catch (Exception e) {
+            log.error("RSA PrivateKey 파싱 실패: {}", e.getMessage());
+        }
     }
 
+    // 액세스 토큰 생성
     public String generateToken(String email, Long userId, String role) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("roles", role);
 
-        return createToken(email, claims, 1000L * 60 * 30);
+        return createToken(email, claims, 1000L * 60 * 30); // 30분
     }
 
+    //리프레시 토큰 생성
     public String generateRefreshToken(String email, Long userId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
 
-        return createToken(email, claims, 1000L * 60 * 60 * 24 * 14);
+        return createToken(email, claims, 1000L * 60 * 60 * 24 * 14); // 14일
+    }
+
+    // 토큰 생성 공통 함수
+    private String createToken(String subject, Map<String, Object> claims, long expiryMillis) {
+        Date now = new Date();
+        Date expiry = new Date(now.getTime() + expiryMillis);
+
+        return Jwts.builder()
+                .setSubject(subject)
+                .setClaims(claims)
+                .setIssuer("auth-service")
+                .setAudience("api-gateway")
+                .setIssuedAt(now)
+                .setExpiration(expiry)
+                .signWith(privateKey, SignatureAlgorithm.RS256)
+                .compact();
+    }
+
+    // 헤더에서 토큰 추출
+    public String resolveToken(HttpServletRequest request) {
+        String bearer = request.getHeader("Authorization");
+        return (bearer != null && bearer.startsWith("Bearer ")) ? bearer.substring(7) : null;
     }
 
 
-    // 토큰에서 Claims 파싱 (예외는 그대로 던짐)
+
+    // 이 아래로 테스트용 완성되면 지울 예정
+    private PublicKey publicKey;
+
+    @PostConstruct
+    public void loadPublicKey() {
+        try {
+            ClassPathResource resource = new ClassPathResource("keys/public.pem");
+            String key = Files.readString(resource.getFile().toPath());
+
+            key = key
+                    .replaceAll("-----BEGIN (.*)-----", "")
+                    .replaceAll("-----END (.*)-----", "")
+                    .replaceAll("\\s", "");
+
+            byte[] keyBytes = Base64.getDecoder().decode(key);
+            X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
+            KeyFactory factory = KeyFactory.getInstance("RSA");
+
+            publicKey = factory.generatePublic(spec);
+            log.info("RSA PublicKey loaded successfully");
+
+        } catch (Exception e) {
+            log.error("Failed to load public.pem", e);
+        }
+    }
+
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
-                .setSigningKey(secretKey)
+                .setSigningKey(publicKey)
                 .build()
                 .parseClaimsJws(token)
                 .getBody();
     }
 
-    // 이메일 추출
     public String getEmail(String token) {
         return parseClaims(token).getSubject();
     }
 
-    // 권한 추출
     public String getRole(String token) {
         return parseClaims(token).get("roles", String.class);
     }
 
     public Long getUserId(String token) {
         return parseClaims(token).get("userId", Long.class);
-    }
-
-    // 요청 헤더에서 Bearer 토큰 추출
-    public String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
     }
 
     public boolean validateToken(String token) {
@@ -86,16 +144,5 @@ public class JwtProvider {
         }
     }
 
-    private String createToken(String subject, Map<String, Object> claims, long expiryMillis) {
-        Date now = new Date();
-        Date expiry = new Date(now.getTime() + expiryMillis);
 
-        return Jwts.builder()
-                .setSubject(subject)
-                .setClaims(claims)
-                .setIssuedAt(now)
-                .setExpiration(expiry)
-                .signWith(secretKey, SignatureAlgorithm.HS256)
-                .compact();
-    }
 }

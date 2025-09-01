@@ -1,5 +1,5 @@
 package com.moyeorak.auth_service.security;
-
+// api gateway 완성되면 삭제할 예정
 // 요청이 오면 JWT 토큰 유효한지 확인 후 인증 처리
 import com.moyeorak.auth_service.repository.UserRepository;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -42,6 +42,7 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     );
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
+
 
 
     @Override
