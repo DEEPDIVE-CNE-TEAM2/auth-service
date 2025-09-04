@@ -45,7 +45,8 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
-                                "/v3/api-docs.yaml"
+                                "/v3/api-docs.yaml",
+				"/auth/.well-known/**"
                         ).permitAll()
 
                         // --- 그 외 API는 JWT 인증 필요 ---

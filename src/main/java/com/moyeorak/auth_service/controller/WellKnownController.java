@@ -1,11 +1,15 @@
 package com.moyeorak.auth_service.controller;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigInteger;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.PublicKey;
@@ -22,10 +26,20 @@ public class WellKnownController {
 
     private final RSAPublicKey publicKey;
 
-    public WellKnownController() throws Exception {
-        // public.pem 로딩 → RSAPublicKey
-        ClassPathResource resource = new ClassPathResource("keys/public.pem");
-        String pem = Files.readString(resource.getFile().toPath())
+    @Value("${jwt.public-key-path:}") // application.yml에서 주입, 없으면 빈 문자열
+    private String publicKeyPath;
+
+    public WellKnownController(@Value("${jwt.public-key-path:}") String publicKeyPath) throws Exception {
+        InputStream is;
+        if (publicKeyPath != null && !publicKeyPath.isEmpty()) {
+            // 환경변수 또는 설정된 경로가 있으면 파일 시스템에서 로딩
+            is = new FileInputStream(publicKeyPath);
+        } else {
+            // 없으면 classpath에서 로딩 (테스트용)
+            is = new ClassPathResource("keys/public.pem").getInputStream();
+        }
+
+        String pem = new String(is.readAllBytes(), StandardCharsets.UTF_8)
                 .replaceAll("-----BEGIN (.*)-----", "")
                 .replaceAll("-----END (.*)-----", "")
                 .replaceAll("\\s", "");

@@ -1,5 +1,7 @@
 package com.moyeorak.auth_service.security;
 
+import org.springframework.beans.factory.annotation.Value;
+import java.nio.charset.StandardCharsets;
 import io.jsonwebtoken.*;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
@@ -8,7 +10,10 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.FileInputStream;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
@@ -19,6 +24,11 @@ import java.util.*;
 @Slf4j
 @Component
 public class JwtProvider {
+    @Value("${jwt.private-key-path}")
+    private String privateKeyPath;
+
+    @Value("${jwt.public-key-path}")
+    private String publicKeyPath;
 
     private PrivateKey privateKey;
 
@@ -26,13 +36,23 @@ public class JwtProvider {
     @PostConstruct
     public void init() {
         try {
-            ClassPathResource resource = new ClassPathResource("keys/private.pem");
-            String key = Files.readString(resource.getFile().toPath());
-
-            key = key
+            //ClassPathResource resource = new ClassPathResource("keys/private.pem");
+            //String key = Files.readString(resource.getFile().toPath());
+	    //String key = Files.readString(Paths.get(privateKeyPath), StandardCharsets.UTF_8);
+		
+            //key = key
+	    InputStream is;
+        	if (privateKeyPath != null && !privateKeyPath.isEmpty()) {
+            	    // 환경변수 경로가 있으면 파일 시스템에서 로딩
+            	    is = new FileInputStream(privateKeyPath);
+        	} else {
+            	    // 없으면 classpath에서 로딩 (테스트용)
+            	    is = new ClassPathResource("keys/private.pem").getInputStream();
+        	}
+            String key = new String(is.readAllBytes(), StandardCharsets.UTF_8)
                     .replaceAll("-----BEGIN (.*)-----", "")
                     .replaceAll("-----END (.*)-----", "")
-                    .replaceAll("\\s", ""); // 줄바꿈 제거
+                    .replaceAll("\\R", ""); // 줄바꿈 제거
 
             byte[] keyBytes = Base64.getDecoder().decode(key);
             PKCS8EncodedKeySpec spec = new PKCS8EncodedKeySpec(keyBytes);
@@ -95,13 +115,23 @@ public class JwtProvider {
     @PostConstruct
     public void loadPublicKey() {
         try {
-            ClassPathResource resource = new ClassPathResource("keys/public.pem");
-            String key = Files.readString(resource.getFile().toPath());
+            //ClassPathResource resource = new ClassPathResource("keys/public.pem");
+            //String key = Files.readString(resource.getFile().toPath());
+	    //String key = Files.readString(Paths.get(publicKeyPath), StandardCharsets.UTF_8);
 
-            key = key
+            //key = key
+	    InputStream is;
+                if (publicKeyPath != null && !publicKeyPath.isEmpty()) {
+                    // 환경변수 경로가 있으면 파일 시스템에서 로딩
+                    is = new FileInputStream(publicKeyPath);
+                } else {
+                    // 없으면 classpath에서 로딩 (테스트용)
+                    is = new ClassPathResource("keys/public.pem").getInputStream();
+                }
+            String key = new String(is.readAllBytes(), StandardCharsets.UTF_8)
                     .replaceAll("-----BEGIN (.*)-----", "")
                     .replaceAll("-----END (.*)-----", "")
-                    .replaceAll("\\s", "");
+                    .replaceAll("\\R", "");
 
             byte[] keyBytes = Base64.getDecoder().decode(key);
             X509EncodedKeySpec spec = new X509EncodedKeySpec(keyBytes);
