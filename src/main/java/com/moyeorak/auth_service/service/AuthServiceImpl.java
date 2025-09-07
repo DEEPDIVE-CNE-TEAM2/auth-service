@@ -33,7 +33,7 @@ public class AuthServiceImpl implements AuthService {
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
-        String accessToken = jwtProvider.generateToken(user.getEmail(), user.getId(), user.getRole().name());
+        String accessToken = jwtProvider.generateToken(user.getEmail(), user.getId(), user.getRole().name(), user.getRegionId());
         String refreshToken = jwtProvider.generateRefreshToken(user.getEmail(), user.getId());
 
         user.setRefreshToken(refreshToken);
@@ -71,7 +71,7 @@ public class AuthServiceImpl implements AuthService {
         }
 
         // 새 Access Token / Refresh Token 발급
-        String newAccessToken = jwtProvider.generateToken(email, user.getId(), user.getRole().name());
+        String newAccessToken = jwtProvider.generateToken(email, user.getId(), user.getRole().name(), user.getRegionId());
         String newRefreshToken = jwtProvider.generateRefreshToken(email, user.getId());
 
         // Refresh Token 갱신

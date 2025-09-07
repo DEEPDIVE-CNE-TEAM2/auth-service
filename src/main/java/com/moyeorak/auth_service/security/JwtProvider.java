@@ -12,6 +12,7 @@ import java.nio.file.Files;
 import java.security.KeyFactory;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import java.security.interfaces.RSAPublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.*;
@@ -49,10 +50,11 @@ public class JwtProvider {
     }
 
     // 액세스 토큰 생성
-    public String generateToken(String email, Long userId, String role) {
+    public String generateToken(String email, Long userId, String role, Long regionId) {
         Map<String, Object> claims = new HashMap<>();
         claims.put("userId", userId);
         claims.put("roles", role);
+        claims.put("regionId", regionId);
 
         return createToken(email, claims, 1000L * 60 * 30); // 30분
     }
@@ -135,6 +137,10 @@ public class JwtProvider {
         return parseClaims(token).get("userId", Long.class);
     }
 
+    public Long getRegionId(String token) {
+        return parseClaims(token).get("regionId", Long.class);
+    }
+
     public boolean validateToken(String token) {
         try {
             parseClaims(token);
@@ -144,5 +150,21 @@ public class JwtProvider {
         }
     }
 
+    public Map<String, Object> getJwks() {
+        RSAPublicKey rsaPublicKey = (RSAPublicKey) this.publicKey;
+
+        Map<String, Object> key = new HashMap<>();
+        key.put("kty", "RSA");
+        key.put("alg", "RS256");
+        key.put("use", "sig");
+        key.put("kid", "moyeorak-key-1"); // 원하는 ID 부여
+        key.put("n", Base64.getUrlEncoder().withoutPadding().encodeToString(rsaPublicKey.getModulus().toByteArray()));
+        key.put("e", Base64.getUrlEncoder().withoutPadding().encodeToString(rsaPublicKey.getPublicExponent().toByteArray()));
+
+        Map<String, Object> jwks = new HashMap<>();
+        jwks.put("keys", List.of(key));
+
+        return jwks;
+    }
 
 }
