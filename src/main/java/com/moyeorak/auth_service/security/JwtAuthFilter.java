@@ -39,7 +39,8 @@ public class JwtAuthFilter extends OncePerRequestFilter {
             "/api/auth/login",
             "/swagger-ui/**",
             "/v3/api-docs/**",
-	    "/auth/.well-known/**"
+	    "/auth/.well-known/**",
+	    "/actuator/**"
     );
 
     private static final AntPathMatcher pathMatcher = new AntPathMatcher();
@@ -50,9 +51,10 @@ public class JwtAuthFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        String path = request.getServletPath();
-
-        // 공개 경로는 JWT 검증 스킵
+	// String path = request.getServletPath();
+	String path = request.getRequestURI(); // getServletPath() 대신
+	
+	// 공개 경로는 JWT 검증 스킵
         if (PUBLIC_URLS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path))) {
             filterChain.doFilter(request, response);
             return;
@@ -60,7 +62,15 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         // Authorization 헤더 추출
         String header = request.getHeader("Authorization");
-        if (header == null || !header.startsWith("Bearer ")) {
+	log.info("Request Path: {}, Is Public: {}", path, 
+         PUBLIC_URLS.stream().anyMatch(pattern -> pathMatcher.match(pattern, path)));
+
+	System.out.println("=== REQUEST INFO ===");
+    	System.out.println("Request Path: " + path);
+    	System.out.println("Request URI: " + request.getRequestURI());
+    	System.out.println("Authorization Header: " + header);
+        
+	if (header == null || !header.startsWith("Bearer ")) {
             log.warn("Authorization 헤더가 없거나 잘못된 형식: {}", header);
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "인증 토큰이 없습니다.");
             return;
