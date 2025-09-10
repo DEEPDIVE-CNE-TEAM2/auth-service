@@ -44,7 +44,6 @@ jobs:
           wget -q "$URL" -O /tmp/gradle.zip
           sudo unzip -o -q /tmp/gradle.zip -d /opt
           sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
-          # add gradle bin to PATH for subsequent steps
           echo "/opt/gradle/bin" >> $GITHUB_PATH
           echo "Gradle installed: $(/opt/gradle/bin/gradle -v | head -n 1)"
 
@@ -56,7 +55,6 @@ jobs:
             ls -la gradle/wrapper || true
           else
             echo "gradle-wrapper.jar missing -> generating wrapper (using installed gradle ${GRADLE_VERSION})"
-            # generate wrapper but do NOT run wrapper for build to avoid downloading other versions
             /opt/gradle/bin/gradle wrapper || true
             ls -la gradle/wrapper || true
           fi
@@ -89,7 +87,6 @@ jobs:
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
           echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
-          # Dockerfile should be the runtime-only that copies build/libs/*.jar
           docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
           docker push ${SHA_TAG}
@@ -97,23 +94,118 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync for auth
+      - name: Trigger ArgoCD sync for auth (robust + diagnostics)
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
         run: |
-          sudo apt-get update -y
-          sudo apt-get install -y jq curl
-          curl -s -k -X POST "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/sync" \
-            -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
-            -H "Content-Type: application/json" -d '{}'
+          set -eu
+          echo "---- ArgoCD sync: sanity checks ----"
+          if [ -z "${ARGOCD_SERVER:-}" ]; then
+            echo "ERROR: ARGOCD_SERVER secret is empty. Set secrets.ARGOCD_SERVER and try again."
+            exit 2
+          fi
+          if [ -z "${ARGOCD_TOKEN:-}" ]; then
+            echo "ERROR: ARGOCD_TOKEN secret is empty. Set secrets.ARGOCD_TOKEN and try again."
+            exit 3
+          fi
 
+          # build URL safely (allow user to put server with or without protocol)
+          if echo "${ARGOCD_SERVER}" | grep -E '^https?://' >/dev/null 2>&1; then
+            ARGOCD_URL="${ARGOCD_SERVER%/}"   # remove trailing slash if any
+          else
+            ARGOCD_URL="https://${ARGOCD_SERVER}"
+          fi
+
+          echo "Using ArgoCD URL: ${ARGOCD_URL}"
+          echo "Installing diagnostics tools (non-interactive)"
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl dnsutils || true
+
+          # Quick DNS/resolve check
+          HOSTNAME=$(echo "${ARGOCD_URL}" | sed -E 's#^https?://##; s#/.*$##')
+          echo "Checking DNS resolution for host: $HOSTNAME"
+          if command -v dig >/dev/null 2>&1; then
+            dig +short "$HOSTNAME" || true
+          elif command -v host >/dev/null 2>&1; then
+            host "$HOSTNAME" || true
+          else
+            getent hosts "$HOSTNAME" || true
+          fi
+
+          echo "Attempting POST /api/v1/applications/${ARGOCD_APP}/sync with retries..."
+          SYNC_ENDPOINT="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/sync"
+          MAX_TRIES=5
+          SLEEP_SEC=5
+          OK=0
+          for i in $(seq 1 $MAX_TRIES); do
+            echo " -> attempt $i/$MAX_TRIES ..."
+            # do POST and capture HTTP code and body (curl exit code 6 -> couldn't resolve host)
+            set +e
+            resp_file=$(mktemp)
+            http_code=$(curl -s -k -S -o "$resp_file" -w "%{http_code}" \
+              -X POST "$SYNC_ENDPOINT" \
+              -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
+              -H "Content-Type: application/json" \
+              -d '{}' --max-time 20)
+            curl_exit=$?
+            set -e
+            if [ $curl_exit -ne 0 ]; then
+              echo "curl failed (code $curl_exit). Common cause: DNS resolution or network issue."
+              if [ $curl_exit -eq 6 ]; then
+                echo "curl exit 6 -> Couldn't resolve host. DNS lookup:"
+                if command -v dig >/dev/null 2>&1; then dig "$HOSTNAME" || true; fi
+                if command -v host >/dev/null 2>&1; then host "$HOSTNAME" || true; fi
+              fi
+              cat "$resp_file" || true
+              rm -f "$resp_file"
+              sleep $SLEEP_SEC
+              continue
+            fi
+
+            echo "Got HTTP code: $http_code"
+            cat "$resp_file" || true
+
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
+              echo "Sync request accepted (HTTP $http_code)."
+              OK=1
+              rm -f "$resp_file"
+              break
+            fi
+
+            if [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
+              echo "Authentication error (HTTP $http_code). Check ARGOCD_TOKEN and permissions."
+              cat "$resp_file" || true
+              rm -f "$resp_file"
+              exit 4
+            fi
+
+            echo "Sync request returned HTTP $http_code. Response body:"
+            cat "$resp_file" || true
+            rm -f "$resp_file"
+            sleep $SLEEP_SEC
+          done
+
+          if [ "$OK" -ne 1 ]; then
+            echo "Failed to POST sync after ${MAX_TRIES} attempts. Exiting with error."
+            exit 5
+          fi
+
+          echo "-> Polling ArgoCD application status until Synced/Succeeded (timeout ~150s)..."
+          STATUS_URL="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/status"
           for i in $(seq 1 30); do
             sleep 5
-            STATUS_JSON=$(curl -s -k -H "Authorization: Bearer ${ARGOCD_TOKEN}" "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/status")
-            PHASE=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // empty')
-            SYNC_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.sync.status // empty')
+            set +e
+            STATUS_JSON=$(curl -s -k -S -H "Authorization: Bearer ${ARGOCD_TOKEN}" "$STATUS_URL" --max-time 10)
+            curl_exit=$?
+            set -e
+            if [ $curl_exit -ne 0 ]; then
+              echo "Status request failed (curl code $curl_exit). Retrying..."
+              continue
+            fi
+            PHASE=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // empty' 2>/dev/null || echo "")
+            SYNC_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.sync.status // empty' 2>/dev/null || echo "")
             CUR_STATUS=${PHASE:-$SYNC_STATUS}
             echo "ArgoCD status: $CUR_STATUS (attempt $i/30)"
             if [ "$CUR_STATUS" = "Succeeded" ] || [ "$CUR_STATUS" = "Synced" ]; then
@@ -122,14 +214,14 @@ jobs:
             fi
             if [ "$CUR_STATUS" = "Failed" ] || [ "$CUR_STATUS" = "Error" ]; then
               echo "ArgoCD sync failed."
-              echo "$STATUS_JSON" | jq .
-              exit 1
+              echo "$STATUS_JSON" | jq . || echo "$STATUS_JSON"
+              exit 6
             fi
           done
 
-          echo "ArgoCD sync timed out after 150s"
-          echo "$STATUS_JSON" | jq .
-          exit 1
+          echo "ArgoCD sync timed out after 150s; dumping last status:"
+          echo "$STATUS_JSON" | jq . || echo "$STATUS_JSON"
+          exit 7
 
       - name: Cleanup local images
         run: docker image prune -af || true
