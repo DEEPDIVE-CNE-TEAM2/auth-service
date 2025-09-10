@@ -90,13 +90,14 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync via CLI
+      - name: Trigger ArgoCD sync via CLI (sanitized server, no --retry)
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
           set -eu
-          echo "---- ArgoCD CLI sync (with user-info check) ----"
+          echo "---- ArgoCD CLI sync (sanitized server, no --retry) ----"
+
           if [ -z "${ARGOCD_SERVER:-}" ]; then
             echo "ERROR: ARGOCD_SERVER is empty"
             exit 2
@@ -106,36 +107,50 @@ jobs:
             exit 3
           fi
 
-          echo "ArgoCD server: $ARGOCD_SERVER"
-          # 안전하게 토큰 일부만 출력
-          echo "ArgoCD token prefix: ${ARGOCD_TOKEN:0:8}****"
+          # sanitize server: remove leading http(s):// and trailing slash
+          HOST="${ARGOCD_SERVER#https://}"
+          HOST="${HOST#http://}"
+          HOST="${HOST%/}"
+          echo "Using ArgoCD host: $HOST"
 
           # 1) download argocd CLI
           curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
           chmod +x ./argocd
 
           # 2) client version
-          echo "argocd client version:"
-          ./argocd version --client
+          ./argocd version --client || true
 
-          # 3) check account info (don't exit on failure — may lack RBAC to view)
-          echo "---- argocd account get-user-info (may fail if token lacks permissions) ----"
+          # 3) check token -> account info (diagnostic). don't exit if this fails
+          echo "---- account get-user-info (diagnostic) ----"
           set +e
-          ./argocd --server "${ARGOCD_SERVER}" --auth-token "${ARGOCD_TOKEN}" account get-user-info -o json
+          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" account get-user-info -o json
           rc_userinfo=$?
           set -e
           if [ $rc_userinfo -ne 0 ]; then
-            echo "Warning: account get-user-info failed (token may lack read permissions). Continuing to attempt sync..."
+            echo "Warning: account get-user-info failed (token may lack read permissions or host unreachable)."
           else
             echo "account get-user-info succeeded."
           fi
 
-          # 4) perform sync (will fail if token lacks sync permission)
-          echo "---- starting app sync 'auth' ----"
-          ./argocd --server "${ARGOCD_SERVER}" --auth-token "${ARGOCD_TOKEN}" --insecure --grpc-web \
-            app sync auth --prune --retry --force --wait --timeout 300
+          # 3.5) check app exists and show its status (diagnostic)
+          echo "---- argocd app get auth (diagnostic) ----"
+          set +e
+          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" app get auth -o yaml
+          rc_appget=$?
+          set -e
+          if [ $rc_appget -ne 0 ]; then
+            echo "Warning: app 'auth' not found or access denied (rc=$rc_appget)."
+            # continue to attempt sync anyway; will fail if not permitted
+          else
+            echo "app 'auth' found."
+          fi
 
-          echo "ArgoCD sync command finished."
+          # 4) sync without --retry (some CLI versions don't support --retry)
+          echo "---- syncing app 'auth' ----"
+          # Use --insecure if your ArgoCD has self-signed certs / LB
+          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" --insecure --grpc-web \
+            app sync auth --prune --force --wait --timeout 300
+
 
       - name: Cleanup local images
         run: docker image prune -af || true
