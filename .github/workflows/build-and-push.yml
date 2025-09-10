@@ -96,24 +96,46 @@ jobs:
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
           set -eu
-          echo "---- ArgoCD CLI sync ----"
+          echo "---- ArgoCD CLI sync (with user-info check) ----"
+          if [ -z "${ARGOCD_SERVER:-}" ]; then
+            echo "ERROR: ARGOCD_SERVER is empty"
+            exit 2
+          fi
+          if [ -z "${ARGOCD_TOKEN:-}" ]; then
+            echo "ERROR: ARGOCD_TOKEN is empty"
+            exit 3
+          fi
+
           echo "ArgoCD server: $ARGOCD_SERVER"
+          # 안전하게 토큰 일부만 출력
+          echo "ArgoCD token prefix: ${ARGOCD_TOKEN:0:8}****"
 
           # 1) download argocd CLI
           curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
           chmod +x ./argocd
 
-          # 2) login with token (non-interactive). --insecure if self-signed certs / behind LB.
-          #    If your ARGOCD_SERVER already includes https://, pass as-is. If not, include host.
-          ./argocd login ${ARGOCD_SERVER#https://} --token "$ARGOCD_TOKEN" --insecure --grpc-web
+          # 2) client version
+          echo "argocd client version:"
+          ./argocd version --client
 
-          # 3) debug: print current user info (shows username, issuer, groups)
-          echo "---- argocd account get-user-info ----"
-          ./argocd account get-user-info -o json || true
+          # 3) check account info (don't exit on failure — may lack RBAC to view)
+          echo "---- argocd account get-user-info (may fail if token lacks permissions) ----"
+          set +e
+          ./argocd --server "${ARGOCD_SERVER}" --auth-token "${ARGOCD_TOKEN}" account get-user-info -o json
+          rc_userinfo=$?
+          set -e
+          if [ $rc_userinfo -ne 0 ]; then
+            echo "Warning: account get-user-info failed (token may lack read permissions). Continuing to attempt sync..."
+          else
+            echo "account get-user-info succeeded."
+          fi
 
-          # 4) sync the app (wait until finished). Adjust timeout as needed.
-          echo "---- argocd app sync auth ----"
-          ./argocd app sync auth --prune --retry --force --wait --timeout 300
+          # 4) perform sync (will fail if token lacks sync permission)
+          echo "---- starting app sync 'auth' ----"
+          ./argocd --server "${ARGOCD_SERVER}" --auth-token "${ARGOCD_TOKEN}" --insecure --grpc-web \
+            app sync auth --prune --retry --force --wait --timeout 300
+
+          echo "ArgoCD sync command finished."
 
       - name: Cleanup local images
         run: docker image prune -af || true
