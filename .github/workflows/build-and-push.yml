@@ -90,64 +90,30 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync
+      - name: Trigger ArgoCD sync via CLI
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
           set -eu
-          echo "---- ArgoCD sync: sanity checks ----"
-          echo "Using ArgoCD URL: $ARGOCD_SERVER"
+          echo "---- ArgoCD CLI sync ----"
+          echo "ArgoCD server: $ARGOCD_SERVER"
 
-          SYNC_ENDPOINT="$ARGOCD_SERVER/api/v1/applications/auth/sync"
-          echo "Triggering ArgoCD sync via: $SYNC_ENDPOINT"
+          # 1) download argocd CLI
+          curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
+          chmod +x ./argocd
 
-          MAX_TRIES=5
-          SLEEP_SEC=5
-          OK=0
+          # 2) login with token (non-interactive). --insecure if self-signed certs / behind LB.
+          #    If your ARGOCD_SERVER already includes https://, pass as-is. If not, include host.
+          ./argocd login ${ARGOCD_SERVER#https://} --token "$ARGOCD_TOKEN" --insecure --grpc-web
 
-          for i in $(seq 1 $MAX_TRIES); do
-            echo " -> attempt $i/$MAX_TRIES ..."
-            set +e
-            resp_file=$(mktemp)
-            http_code=$(curl -s -k -S -o "$resp_file" -w "%{http_code}" \
-              -X POST "$SYNC_ENDPOINT" \
-              -H "Authorization: Bearer $ARGOCD_TOKEN" \
-              -H "Content-Type: application/json" \
-              -d '{
-                    "targetRevision": "main",
-                    "prune": true,
-                    "strategy": { "apply": { "force": true } }
-                  }')
-            curl_exit=$?
-            set -e
+          # 3) debug: print current user info (shows username, issuer, groups)
+          echo "---- argocd account get-user-info ----"
+          ./argocd account get-user-info -o json || true
 
-            if [ $curl_exit -ne 0 ]; then
-              echo "curl failed (code $curl_exit). Retrying..."
-              cat "$resp_file" || true
-              rm -f "$resp_file"
-              sleep $SLEEP_SEC
-              continue
-            fi
-
-            echo "HTTP code: $http_code"
-            cat "$resp_file" || true
-
-            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-              echo "ArgoCD sync triggered successfully."
-              OK=1
-              rm -f "$resp_file"
-              break
-            fi
-
-            rm -f "$resp_file"
-            sleep $SLEEP_SEC
-          done
-
-          if [ "$OK" -ne 1 ]; then
-            echo "Failed to POST sync after $MAX_TRIES attempts."
-            exit 5
-          fi
+          # 4) sync the app (wait until finished). Adjust timeout as needed.
+          echo "---- argocd app sync auth ----"
+          ./argocd app sync auth --prune --retry --force --wait --timeout 300
 
       - name: Cleanup local images
         run: docker image prune -af || true
