@@ -94,31 +94,29 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync for auth (robust + diagnostics)
+      - name: Trigger ArgoCD sync for auth (minimal JSON, robust)
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
-          ARGOCD_REVISION: main  # 여기에 실제 sync할 브랜치 입력
         run: |
           set -eu
           echo "---- ArgoCD sync: sanity checks ----"
           if [ -z "${ARGOCD_SERVER:-}" ]; then
-            echo "ERROR: ARGOCD_SERVER secret is empty. Set secrets.ARGOCD_SERVER and try again."
+            echo "ERROR: ARGOCD_SERVER secret is empty."
             exit 2
           fi
           if [ -z "${ARGOCD_TOKEN:-}" ]; then
-            echo "ERROR: ARGOCD_TOKEN secret is empty. Set secrets.ARGOCD_TOKEN and try again."
+            echo "ERROR: ARGOCD_TOKEN secret is empty."
             exit 3
           fi
 
-          # Build full URL safely
+          # Build URL safely
           if echo "${ARGOCD_SERVER}" | grep -E '^https?://' >/dev/null 2>&1; then
             ARGOCD_URL="${ARGOCD_SERVER%/}"
           else
             ARGOCD_URL="https://${ARGOCD_SERVER}"
           fi
-
           echo "Using ArgoCD URL: ${ARGOCD_URL}"
 
           # Sync POST
@@ -137,12 +135,7 @@ jobs:
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
-              -d "{
-                    \"revision\": \"${ARGOCD_REVISION}\",
-                    \"prune\": true,
-                    \"dryRun\": false,
-                    \"strategy\": {}
-                  }" --max-time 20)
+              -d '{"revision":"main"}' --max-time 20)
             curl_exit=$?
             set -e
 
@@ -173,6 +166,7 @@ jobs:
             exit 5
           fi
 
+          # Poll app status
           echo "-> Polling ArgoCD app status..."
           STATUS_URL="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/status"
           for i in $(seq 1 30); do
@@ -201,6 +195,7 @@ jobs:
           echo "Sync timed out."
           echo "$STATUS_JSON" | jq .
           exit 7
+
 
 
 
