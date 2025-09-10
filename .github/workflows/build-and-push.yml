@@ -1,0 +1,102 @@
+name: Build Auth image and push to ECR (push latest + sha)
+
+on:
+  push:
+    branches:
+      - main
+      - dev
+
+env:
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
+  ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-region: ${{ env.AWS_REGION }}
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+      - name: Login to Amazon ECR
+        run: |
+          aws ecr get-login-password --region ${{ env.AWS_REGION }} \
+            | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
+
+      - name: Build Docker image and push tags
+        env:
+          SHORT_SHA: ${{ github.sha }}
+        run: |
+          # short sha (7 chars)
+          SHORT=${SHORT_SHA::7}
+          # tags we will push: latest and short-sha
+          LATEST_TAG=${ECR_IMAGE_NAME}:latest
+          SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
+
+          echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
+          docker build -t ${SHA_TAG} .
+          docker tag ${SHA_TAG} ${LATEST_TAG}
+
+          docker push ${SHA_TAG}
+          docker push ${LATEST_TAG}
+
+          # expose for later steps if needed
+          echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
+          echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
+
+      - name: Trigger ArgoCD sync for auth
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+          ARGOCD_APP: auth
+        run: |
+          echo "Installing jq..."
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl
+
+          echo "Triggering ArgoCD sync for app: ${ARGOCD_APP} on ${ARGOCD_SERVER}"
+          # Trigger sync
+          curl -s -k -X POST "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/sync" \
+            -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
+            -H "Content-Type: application/json" \
+            -d '{}'
+
+          # Poll status (timeout ~150s: 30 * 5s)
+          for i in $(seq 1 30); do
+            sleep 5
+            STATUS_JSON=$(curl -s -k -H "Authorization: Bearer ${ARGOCD_TOKEN}" "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/status")
+            # Try operationState.phase, fallback to sync.status
+            PHASE=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // empty')
+            SYNC_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.sync.status // empty')
+            CUR_STATUS=${PHASE:-$SYNC_STATUS}
+            echo "ArgoCD status: $CUR_STATUS (attempt $i/30)"
+            if [ "$CUR_STATUS" = "Succeeded" ] || [ "$CUR_STATUS" = "Synced" ]; then
+              echo "ArgoCD sync succeeded."
+              exit 0
+            fi
+            if [ "$CUR_STATUS" = "Failed" ] || [ "$CUR_STATUS" = "Error" ]; then
+              echo "ArgoCD sync failed."
+              echo "$STATUS_JSON" | jq .
+              exit 1
+            fi
+          done
+
+          echo "ArgoCD sync timed out after 150s"
+          echo "$STATUS_JSON" | jq .
+          exit 1
+
+      - name: Cleanup local images
+        run: docker image prune -af || true
