@@ -10,6 +10,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
+  GRADLE_VERSION: 7.6
 
 jobs:
   build-push:
@@ -32,47 +33,39 @@ jobs:
           distribution: temurin
           java-version: 17
 
-      - name: Ensure gradle wrapper jar present (install modern Gradle if needed)
+      - name: Install pinned Gradle (non-interactive) and expose to PATH
+        run: |
+          set -euo pipefail
+          echo "Installing Gradle ${GRADLE_VERSION} to /opt (non-interactive)"
+          sudo apt-get update -y
+          sudo apt-get install -y curl unzip jq
+          DIST="gradle-${GRADLE_VERSION}-bin.zip"
+          URL="https://services.gradle.org/distributions/${DIST}"
+          wget -q "$URL" -O /tmp/gradle.zip
+          sudo unzip -o -q /tmp/gradle.zip -d /opt
+          sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
+          # add gradle bin to PATH for subsequent steps
+          echo "/opt/gradle/bin" >> $GITHUB_PATH
+          echo "Gradle installed: $(/opt/gradle/bin/gradle -v | head -n 1)"
+
+      - name: (optional) Generate gradle wrapper using installed Gradle if missing
         run: |
           set -euo pipefail
           if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "gradle-wrapper.jar present"
+            echo "gradle-wrapper.jar present, skipping wrapper generation"
             ls -la gradle/wrapper || true
-            exit 0
-          fi
-          sudo apt-get update -y
-          sudo apt-get install -y curl unzip jq
-          GRADLE_VERSION=$(curl -s https://services.gradle.org/versions/current | jq -r .version)
-          wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
-          sudo unzip -q /tmp/gradle.zip -d /opt
-          sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
-          export PATH="/opt/gradle/bin:$PATH"
-          if [ -x ./gradlew ]; then
-            chmod +x ./gradlew || true
-            ./gradlew wrapper || gradle wrapper
           else
-            gradle wrapper
+            echo "gradle-wrapper.jar missing -> generating wrapper (using installed gradle ${GRADLE_VERSION})"
+            # generate wrapper but do NOT run wrapper for build to avoid downloading other versions
+            /opt/gradle/bin/gradle wrapper || true
+            ls -la gradle/wrapper || true
           fi
-          ls -la gradle/wrapper || true
 
-      - name: Build JAR on runner (create build/libs/*.jar)
+      - name: Build JAR on runner using pinned Gradle (no ./gradlew to avoid downloading Gradle 9)
         run: |
           set -euo pipefail
-          echo "Try building with ./gradlew first (wrapper)..."
-          chmod +x ./gradlew || true
-          if ./gradlew clean bootJar -x test; then
-            echo "Built with wrapper"
-          else
-            echo "wrapper build failed -> try installed gradle"
-            sudo apt-get update -y
-            sudo apt-get install -y curl unzip
-            GRADLE_VERSION=$(curl -s https://services.gradle.org/versions/current | jq -r .version)
-            wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
-            sudo unzip -q /tmp/gradle.zip -d /opt
-            sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
-            export PATH="/opt/gradle/bin:$PATH"
-            gradle clean bootJar -x test
-          fi
+          echo "Building with installed Gradle (version from /opt/gradle/bin)"
+          /opt/gradle/bin/gradle --no-daemon clean bootJar -x test --warning-mode all
           echo "Artifacts:"
           ls -la build/libs || true
 
@@ -96,7 +89,7 @@ jobs:
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
           echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
-          # build (Dockerfile expects build/libs/*.jar present)
+          # Dockerfile should be the runtime-only that copies build/libs/*.jar
           docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
           docker push ${SHA_TAG}
