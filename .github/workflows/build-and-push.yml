@@ -12,7 +12,7 @@ env:
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
   GRADLE_VERSION: 7.6
   # ArgoCD 환경변수 추가
-  ARGOCD_URL: ${{ secrets.ARGOCD_URL }}
+  ARGOCD_URL: ${{ secrets.ARGOCD_SERVER }}
   ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
 
 jobs:
