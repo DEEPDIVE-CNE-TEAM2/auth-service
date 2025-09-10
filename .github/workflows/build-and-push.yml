@@ -99,6 +99,7 @@ jobs:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
+          ARGOCD_REVISION: main  # 여기에 실제 sync할 브랜치 입력
         run: |
           set -eu
           echo "---- ArgoCD sync: sanity checks ----"
@@ -136,7 +137,12 @@ jobs:
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
-              -d '{"revision":""}' --max-time 20)
+              -d "{
+                    \"revision\": \"${ARGOCD_REVISION}\",
+                    \"prune\": true,
+                    \"dryRun\": false,
+                    \"strategy\": {}
+                  }" --max-time 20)
             curl_exit=$?
             set -e
 
@@ -195,6 +201,7 @@ jobs:
           echo "Sync timed out."
           echo "$STATUS_JSON" | jq .
           exit 7
+
 
 
       - name: Cleanup local images
