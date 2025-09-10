@@ -111,88 +111,63 @@ jobs:
             exit 3
           fi
 
-          # build URL safely (allow user to put server with or without protocol)
+          # Build full URL safely
           if echo "${ARGOCD_SERVER}" | grep -E '^https?://' >/dev/null 2>&1; then
-            ARGOCD_URL="${ARGOCD_SERVER%/}"   # remove trailing slash if any
+            ARGOCD_URL="${ARGOCD_SERVER%/}"
           else
             ARGOCD_URL="https://${ARGOCD_SERVER}"
           fi
 
           echo "Using ArgoCD URL: ${ARGOCD_URL}"
-          echo "Installing diagnostics tools (non-interactive)"
-          sudo apt-get update -y
-          sudo apt-get install -y jq curl dnsutils || true
 
-          # Quick DNS/resolve check
-          HOSTNAME=$(echo "${ARGOCD_URL}" | sed -E 's#^https?://##; s#/.*$##')
-          echo "Checking DNS resolution for host: $HOSTNAME"
-          if command -v dig >/dev/null 2>&1; then
-            dig +short "$HOSTNAME" || true
-          elif command -v host >/dev/null 2>&1; then
-            host "$HOSTNAME" || true
-          else
-            getent hosts "$HOSTNAME" || true
-          fi
-
-          echo "Attempting POST /api/v1/applications/${ARGOCD_APP}/sync with retries..."
+          # Sync POST
           SYNC_ENDPOINT="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/sync"
+          echo "Triggering ArgoCD sync via: $SYNC_ENDPOINT"
           MAX_TRIES=5
           SLEEP_SEC=5
           OK=0
+
           for i in $(seq 1 $MAX_TRIES); do
             echo " -> attempt $i/$MAX_TRIES ..."
-            # do POST and capture HTTP code and body (curl exit code 6 -> couldn't resolve host)
             set +e
             resp_file=$(mktemp)
             http_code=$(curl -s -k -S -o "$resp_file" -w "%{http_code}" \
               -X POST "$SYNC_ENDPOINT" \
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
-              -d '{}' --max-time 20)
+              -H "Accept: application/json" \
+              -d '{"revision":""}' --max-time 20)
             curl_exit=$?
             set -e
+
             if [ $curl_exit -ne 0 ]; then
-              echo "curl failed (code $curl_exit). Common cause: DNS resolution or network issue."
-              if [ $curl_exit -eq 6 ]; then
-                echo "curl exit 6 -> Couldn't resolve host. DNS lookup:"
-                if command -v dig >/dev/null 2>&1; then dig "$HOSTNAME" || true; fi
-                if command -v host >/dev/null 2>&1; then host "$HOSTNAME" || true; fi
-              fi
+              echo "curl failed (code $curl_exit). Retrying..."
               cat "$resp_file" || true
               rm -f "$resp_file"
               sleep $SLEEP_SEC
               continue
             fi
 
-            echo "Got HTTP code: $http_code"
+            echo "HTTP code: $http_code"
             cat "$resp_file" || true
 
             if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
-              echo "Sync request accepted (HTTP $http_code)."
+              echo "Sync request accepted."
               OK=1
               rm -f "$resp_file"
               break
             fi
 
-            if [ "$http_code" = "401" ] || [ "$http_code" = "403" ]; then
-              echo "Authentication error (HTTP $http_code). Check ARGOCD_TOKEN and permissions."
-              cat "$resp_file" || true
-              rm -f "$resp_file"
-              exit 4
-            fi
-
-            echo "Sync request returned HTTP $http_code. Response body:"
-            cat "$resp_file" || true
             rm -f "$resp_file"
             sleep $SLEEP_SEC
           done
 
           if [ "$OK" -ne 1 ]; then
-            echo "Failed to POST sync after ${MAX_TRIES} attempts. Exiting with error."
+            echo "Failed to POST sync after ${MAX_TRIES} attempts."
             exit 5
           fi
 
-          echo "-> Polling ArgoCD application status until Synced/Succeeded (timeout ~150s)..."
+          echo "-> Polling ArgoCD app status..."
           STATUS_URL="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/status"
           for i in $(seq 1 30); do
             sleep 5
@@ -201,27 +176,26 @@ jobs:
             curl_exit=$?
             set -e
             if [ $curl_exit -ne 0 ]; then
-              echo "Status request failed (curl code $curl_exit). Retrying..."
+              echo "Status request failed, retrying..."
               continue
             fi
-            PHASE=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // empty' 2>/dev/null || echo "")
-            SYNC_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.sync.status // empty' 2>/dev/null || echo "")
-            CUR_STATUS=${PHASE:-$SYNC_STATUS}
-            echo "ArgoCD status: $CUR_STATUS (attempt $i/30)"
+            CUR_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // .status.sync.status // empty')
+            echo "ArgoCD status: $CUR_STATUS"
             if [ "$CUR_STATUS" = "Succeeded" ] || [ "$CUR_STATUS" = "Synced" ]; then
               echo "ArgoCD sync succeeded."
               exit 0
             fi
             if [ "$CUR_STATUS" = "Failed" ] || [ "$CUR_STATUS" = "Error" ]; then
               echo "ArgoCD sync failed."
-              echo "$STATUS_JSON" | jq . || echo "$STATUS_JSON"
+              echo "$STATUS_JSON" | jq .
               exit 6
             fi
           done
 
-          echo "ArgoCD sync timed out after 150s; dumping last status:"
-          echo "$STATUS_JSON" | jq . || echo "$STATUS_JSON"
+          echo "Sync timed out."
+          echo "$STATUS_JSON" | jq .
           exit 7
+
 
       - name: Cleanup local images
         run: docker image prune -af || true
