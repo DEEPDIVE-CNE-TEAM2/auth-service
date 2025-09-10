@@ -18,11 +18,50 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
+      - name: Print repo files (debug)
+        run: |
+          echo "PWD=$(pwd)"
+          echo "Listing root:"
+          ls -la
+          echo "Listing gradle wrapper dir (if exists):"
+          ls -la gradle || true
+          ls -la gradle/wrapper || true
+          echo ".dockerignore:"
+          cat .dockerignore || true
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
+      - name: Ensure gradle wrapper jar present
+        run: |
+          # If gradle-wrapper.jar exists already, nothing to do.
+          if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
+            echo "gradle-wrapper.jar already present."
+          else
+            echo "gradle-wrapper.jar missing -> attempt to generate it"
+            # If project has ./gradlew script, try to run wrapper; else install system gradle and run gradle wrapper
+            if [ -x ./gradlew ]; then
+              chmod +x ./gradlew || true
+              echo "Running ./gradlew wrapper..."
+              ./gradlew wrapper || {
+                echo "gradlew wrapper failed -> installing system gradle and retrying"
+                sudo apt-get update -y
+                sudo apt-get install -y gradle
+                gradle wrapper
+              }
+            else
+              echo "No ./gradlew -> installing system gradle and running gradle wrapper"
+              sudo apt-get update -y
+              sudo apt-get install -y gradle
+              gradle wrapper
+            fi
+          fi
+
+          echo "After ensure: listing gradle/wrapper:"
+          ls -la gradle/wrapper || true
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -47,7 +86,8 @@ jobs:
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
 
           echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
-          docker build -t ${SHA_TAG} .
+          # build with buildkit disabled plain output (helps see errors)
+          DOCKER_BUILDKIT=0 docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
 
           docker push ${SHA_TAG}
@@ -68,7 +108,6 @@ jobs:
           sudo apt-get install -y jq curl
 
           echo "Triggering ArgoCD sync for app: ${ARGOCD_APP} on ${ARGOCD_SERVER}"
-          # Trigger sync
           curl -s -k -X POST "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/sync" \
             -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
             -H "Content-Type: application/json" \
@@ -78,7 +117,6 @@ jobs:
           for i in $(seq 1 30); do
             sleep 5
             STATUS_JSON=$(curl -s -k -H "Authorization: Bearer ${ARGOCD_TOKEN}" "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/status")
-            # Try operationState.phase, fallback to sync.status
             PHASE=$(echo "$STATUS_JSON" | jq -r '.status.operationState.phase // empty')
             SYNC_STATUS=$(echo "$STATUS_JSON" | jq -r '.status.sync.status // empty')
             CUR_STATUS=${PHASE:-$SYNC_STATUS}
