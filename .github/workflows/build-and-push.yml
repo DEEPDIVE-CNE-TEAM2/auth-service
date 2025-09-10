@@ -54,15 +54,14 @@ jobs:
             echo "gradle-wrapper.jar present, skipping wrapper generation"
             ls -la gradle/wrapper || true
           else
-            echo "gradle-wrapper.jar missing -> generating wrapper (using installed gradle ${GRADLE_VERSION})"
+            echo "gradle-wrapper.jar missing -> generating wrapper"
             /opt/gradle/bin/gradle wrapper || true
             ls -la gradle/wrapper || true
           fi
 
-      - name: Build JAR on runner using pinned Gradle (no ./gradlew to avoid downloading Gradle 9)
+      - name: Build JAR on runner using pinned Gradle
         run: |
           set -euo pipefail
-          echo "Building with installed Gradle (version from /opt/gradle/bin)"
           /opt/gradle/bin/gradle --no-daemon clean bootJar -x test --warning-mode all
           echo "Artifacts:"
           ls -la build/libs || true
@@ -79,14 +78,13 @@ jobs:
           aws ecr get-login-password --region ${{ env.AWS_REGION }} \
             | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-      - name: Build Docker image and push tags (uses prebuilt JAR)
+      - name: Build Docker image and push tags
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
           SHORT=${SHORT_SHA::7}
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
-          echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
           docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
           docker push ${SHA_TAG}
@@ -94,14 +92,13 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync for auth (minimal JSON, robust)
+      - name: Trigger ArgoCD sync for auth (fixed JSON body)
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
         run: |
           set -eu
-          echo "---- ArgoCD sync: sanity checks ----"
           if [ -z "${ARGOCD_SERVER:-}" ]; then
             echo "ERROR: ARGOCD_SERVER secret is empty."
             exit 2
@@ -111,7 +108,7 @@ jobs:
             exit 3
           fi
 
-          # Build URL safely
+          # Build full URL safely
           if echo "${ARGOCD_SERVER}" | grep -E '^https?://' >/dev/null 2>&1; then
             ARGOCD_URL="${ARGOCD_SERVER%/}"
           else
@@ -119,13 +116,11 @@ jobs:
           fi
           echo "Using ArgoCD URL: ${ARGOCD_URL}"
 
-          # Sync POST
+          # POST sync with proper JSON body
           SYNC_ENDPOINT="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/sync"
-          echo "Triggering ArgoCD sync via: $SYNC_ENDPOINT"
           MAX_TRIES=5
           SLEEP_SEC=5
           OK=0
-
           for i in $(seq 1 $MAX_TRIES); do
             echo " -> attempt $i/$MAX_TRIES ..."
             set +e
@@ -135,7 +130,7 @@ jobs:
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
-              -d '{"revision":"main"}' --max-time 20)
+              -d '{"revision":"main","prune":false,"dryRun":false}' --max-time 20)
             curl_exit=$?
             set -e
 
@@ -166,8 +161,7 @@ jobs:
             exit 5
           fi
 
-          # Poll app status
-          echo "-> Polling ArgoCD app status..."
+          # Poll ArgoCD status
           STATUS_URL="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/status"
           for i in $(seq 1 30); do
             sleep 5
@@ -196,9 +190,5 @@ jobs:
           echo "$STATUS_JSON" | jq .
           exit 7
 
-
-
-
       - name: Cleanup local images
         run: docker image prune -af || true
-#.
