@@ -1,13 +1,10 @@
-# build stage
-FROM eclipse-temurin:17 AS builder
-WORKDIR /workspace
-COPY . .
-RUN chmod +x ./gradlew
-RUN ./gradlew clean bootJar -x test
-
-# run stage
+# Runtime-only Dockerfile: Actions에서 build/libs/*.jar 를 만들어 놓으면 이 JAR만 복사합니다.
 FROM eclipse-temurin:17-jre
 WORKDIR /app
-COPY --from=builder /workspace/build/libs/*.jar app.jar
+
+# Actions가 생성한 JAR 파일을 복사
+COPY build/libs/*.jar app.jar
+
 EXPOSE 8080
 ENTRYPOINT ["java","-jar","/app/app.jar"]
+

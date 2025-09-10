@@ -21,12 +21,9 @@ jobs:
       - name: Print repo files (debug)
         run: |
           echo "PWD=$(pwd)"
-          echo "Listing root:"
           ls -la
-          echo "Listing gradle wrapper dir (if exists):"
           ls -la gradle || true
           ls -la gradle/wrapper || true
-          echo ".dockerignore:"
           cat .dockerignore || true
 
       - name: Set up JDK 17
@@ -39,44 +36,45 @@ jobs:
         run: |
           set -euo pipefail
           if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "gradle-wrapper.jar already present."
+            echo "gradle-wrapper.jar present"
             ls -la gradle/wrapper || true
             exit 0
           fi
-
-          echo "gradle-wrapper.jar missing -> will install a modern Gradle and generate wrapper"
-
-          # install small tools we need
           sudo apt-get update -y
           sudo apt-get install -y curl unzip jq
-
-          # get current latest gradle version from official service
           GRADLE_VERSION=$(curl -s https://services.gradle.org/versions/current | jq -r .version)
-          echo "Detected Gradle version to install: ${GRADLE_VERSION}"
-
-          # download and install to /opt
           wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
           sudo unzip -q /tmp/gradle.zip -d /opt
           sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
           export PATH="/opt/gradle/bin:$PATH"
-
-          echo "Installed gradle: $(gradle -v | head -n 1)"
-
-          # If project has ./gradlew, try to use it to generate missing wrapper; otherwise run gradle wrapper
           if [ -x ./gradlew ]; then
             chmod +x ./gradlew || true
-            echo "Attempting to run ./gradlew wrapper (fallback will use system gradle)"
-            ./gradlew wrapper || {
-              echo "./gradlew wrapper failed -> running 'gradle wrapper' using installed gradle"
-              gradle wrapper
-            }
+            ./gradlew wrapper || gradle wrapper
           else
-            echo "No ./gradlew script -> running 'gradle wrapper' using installed gradle"
             gradle wrapper
           fi
-
-          echo "After ensure: listing gradle/wrapper:"
           ls -la gradle/wrapper || true
+
+      - name: Build JAR on runner (create build/libs/*.jar)
+        run: |
+          set -euo pipefail
+          echo "Try building with ./gradlew first (wrapper)..."
+          chmod +x ./gradlew || true
+          if ./gradlew clean bootJar -x test; then
+            echo "Built with wrapper"
+          else
+            echo "wrapper build failed -> try installed gradle"
+            sudo apt-get update -y
+            sudo apt-get install -y curl unzip
+            GRADLE_VERSION=$(curl -s https://services.gradle.org/versions/current | jq -r .version)
+            wget -q "https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip" -O /tmp/gradle.zip
+            sudo unzip -q /tmp/gradle.zip -d /opt
+            sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
+            export PATH="/opt/gradle/bin:$PATH"
+            gradle clean bootJar -x test
+          fi
+          echo "Artifacts:"
+          ls -la build/libs || true
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -90,23 +88,19 @@ jobs:
           aws ecr get-login-password --region ${{ env.AWS_REGION }} \
             | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-      - name: Build Docker image and push tags
+      - name: Build Docker image and push tags (uses prebuilt JAR)
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
-          # short sha (7 chars)
           SHORT=${SHORT_SHA::7}
-          # tags we will push: latest and short-sha
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
-
           echo "Build image -> ${SHA_TAG} and ${LATEST_TAG}"
-          DOCKER_BUILDKIT=0 docker build -t ${SHA_TAG} .
+          # build (Dockerfile expects build/libs/*.jar present)
+          docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
-
           docker push ${SHA_TAG}
           docker push ${LATEST_TAG}
-
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
@@ -116,13 +110,11 @@ jobs:
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
         run: |
-          echo "Installing jq..."; sudo apt-get update -y; sudo apt-get install -y jq curl
-
-          echo "Triggering ArgoCD sync for app: ${ARGOCD_APP} on ${ARGOCD_SERVER}"
+          sudo apt-get update -y
+          sudo apt-get install -y jq curl
           curl -s -k -X POST "https://${ARGOCD_SERVER}/api/v1/applications/${ARGOCD_APP}/sync" \
             -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
-            -H "Content-Type: application/json" \
-            -d '{}'
+            -H "Content-Type: application/json" -d '{}'
 
           for i in $(seq 1 30); do
             sleep 5
