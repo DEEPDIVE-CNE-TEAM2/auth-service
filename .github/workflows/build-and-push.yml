@@ -11,6 +11,9 @@ env:
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
   GRADLE_VERSION: 7.6
+  # ArgoCD 환경변수 추가
+  ARGOCD_URL: ${{ secrets.ARGOCD_URL }}
+  ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
 
 jobs:
   build-push:
@@ -52,18 +55,14 @@ jobs:
           set -euo pipefail
           if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
             echo "gradle-wrapper.jar present, skipping wrapper generation"
-            ls -la gradle/wrapper || true
           else
-            echo "gradle-wrapper.jar missing -> generating wrapper"
             /opt/gradle/bin/gradle wrapper || true
-            ls -la gradle/wrapper || true
           fi
 
       - name: Build JAR on runner using pinned Gradle
         run: |
           set -euo pipefail
           /opt/gradle/bin/gradle --no-daemon clean bootJar -x test --warning-mode all
-          echo "Artifacts:"
           ls -la build/libs || true
 
       - name: Configure AWS credentials
