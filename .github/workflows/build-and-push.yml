@@ -92,13 +92,14 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync for auth (fixed JSON body)
+      - name: Trigger ArgoCD sync for auth (fixed 415)
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
           ARGOCD_APP: auth
         run: |
           set -eu
+          echo "---- ArgoCD sync: sanity checks ----"
           if [ -z "${ARGOCD_SERVER:-}" ]; then
             echo "ERROR: ARGOCD_SERVER secret is empty."
             exit 2
@@ -108,7 +109,7 @@ jobs:
             exit 3
           fi
 
-          # Build full URL safely
+          # Build URL safely
           if echo "${ARGOCD_SERVER}" | grep -E '^https?://' >/dev/null 2>&1; then
             ARGOCD_URL="${ARGOCD_SERVER%/}"
           else
@@ -116,21 +117,22 @@ jobs:
           fi
           echo "Using ArgoCD URL: ${ARGOCD_URL}"
 
-          # POST sync with proper JSON body
           SYNC_ENDPOINT="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/sync"
+          echo "Triggering ArgoCD sync via: $SYNC_ENDPOINT"
           MAX_TRIES=5
           SLEEP_SEC=5
           OK=0
+
           for i in $(seq 1 $MAX_TRIES); do
             echo " -> attempt $i/$MAX_TRIES ..."
             set +e
             resp_file=$(mktemp)
-            http_code=$(curl -s -k -S -o "$resp_file" -w "%{http_code}" \
+            http_code=$(curl -s -k --http1.1 -S -o "$resp_file" -w "%{http_code}" \
               -X POST "$SYNC_ENDPOINT" \
               -H "Authorization: Bearer ${ARGOCD_TOKEN}" \
               -H "Content-Type: application/json" \
               -H "Accept: application/json" \
-              -d '{"revision":"main","prune":false,"dryRun":false}' --max-time 20)
+              -d '{"targetRevision":"main","prune":false,"dryRun":false}' --max-time 20)
             curl_exit=$?
             set -e
 
@@ -161,12 +163,13 @@ jobs:
             exit 5
           fi
 
-          # Poll ArgoCD status
+          # Poll ArgoCD app status
+          echo "-> Polling ArgoCD app status..."
           STATUS_URL="${ARGOCD_URL}/api/v1/applications/${ARGOCD_APP}/status"
           for i in $(seq 1 30); do
             sleep 5
             set +e
-            STATUS_JSON=$(curl -s -k -S -H "Authorization: Bearer ${ARGOCD_TOKEN}" "$STATUS_URL" --max-time 10)
+            STATUS_JSON=$(curl -s -k --http1.1 -S -H "Authorization: Bearer ${ARGOCD_TOKEN}" "$STATUS_URL" --max-time 10)
             curl_exit=$?
             set -e
             if [ $curl_exit -ne 0 ]; then
@@ -189,6 +192,7 @@ jobs:
           echo "Sync timed out."
           echo "$STATUS_JSON" | jq .
           exit 7
+
 
       - name: Cleanup local images
         run: docker image prune -af || true
