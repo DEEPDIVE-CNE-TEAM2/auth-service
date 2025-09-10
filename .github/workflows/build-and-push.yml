@@ -11,8 +11,7 @@ env:
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
   GRADLE_VERSION: 7.6
-  # ArgoCD 환경변수 추가
-  ARGOCD_URL: ${{ secrets.ARGOCD_SERVER }}
+  ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
   ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
 
 jobs:
@@ -50,7 +49,7 @@ jobs:
           echo "/opt/gradle/bin" >> $GITHUB_PATH
           echo "Gradle installed: $(/opt/gradle/bin/gradle -v | head -n 1)"
 
-      - name: (optional) Generate gradle wrapper using installed Gradle if missing
+      - name: (optional) Generate gradle wrapper if missing
         run: |
           set -euo pipefail
           if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
@@ -92,37 +91,63 @@ jobs:
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
       - name: Trigger ArgoCD sync
+        env:
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
         run: |
           set -eu
           echo "---- ArgoCD sync: sanity checks ----"
-          echo "Using ArgoCD URL: $ARGOCD_URL"
-          echo "Triggering ArgoCD sync via: $ARGOCD_URL/api/v1/applications/auth/sync"
+          echo "Using ArgoCD URL: $ARGOCD_SERVER"
 
-          for i in $(seq 1 5); do
-            echo " -> attempt $i/5 ..."
-            http_code=$(curl -k -s -o /dev/null -w "%{http_code}" \
-              -X POST "$ARGOCD_URL/api/v1/applications/auth/sync" \
+          SYNC_ENDPOINT="$ARGOCD_SERVER/api/v1/applications/auth/sync"
+          echo "Triggering ArgoCD sync via: $SYNC_ENDPOINT"
+
+          MAX_TRIES=5
+          SLEEP_SEC=5
+          OK=0
+
+          for i in $(seq 1 $MAX_TRIES); do
+            echo " -> attempt $i/$MAX_TRIES ..."
+            set +e
+            resp_file=$(mktemp)
+            http_code=$(curl -s -k -S -o "$resp_file" -w "%{http_code}" \
+              -X POST "$SYNC_ENDPOINT" \
               -H "Authorization: Bearer $ARGOCD_TOKEN" \
               -H "Content-Type: application/json" \
               -d '{
-                "revision": "HEAD",
-                "prune": true,
-                "strategy": {
-                  "apply": { "force": true }
-                }
-              }')
+                    "targetRevision": "main",
+                    "prune": true,
+                    "strategy": { "apply": { "force": true } }
+                  }')
+            curl_exit=$?
+            set -e
+
+            if [ $curl_exit -ne 0 ]; then
+              echo "curl failed (code $curl_exit). Retrying..."
+              cat "$resp_file" || true
+              rm -f "$resp_file"
+              sleep $SLEEP_SEC
+              continue
+            fi
 
             echo "HTTP code: $http_code"
+            cat "$resp_file" || true
 
-            if [ "$http_code" -eq 200 ]; then
+            if [ "$http_code" -ge 200 ] && [ "$http_code" -lt 300 ]; then
               echo "ArgoCD sync triggered successfully."
-              exit 0
+              OK=1
+              rm -f "$resp_file"
+              break
             fi
-            sleep 5
+
+            rm -f "$resp_file"
+            sleep $SLEEP_SEC
           done
 
-          echo "Failed to POST sync after 5 attempts."
-          exit 5
+          if [ "$OK" -ne 1 ]; then
+            echo "Failed to POST sync after $MAX_TRIES attempts."
+            exit 5
+          fi
 
       - name: Cleanup local images
         run: docker image prune -af || true
