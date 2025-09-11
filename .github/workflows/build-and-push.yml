@@ -88,10 +88,10 @@ jobs:
           docker push ${LATEST_TAG}
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
-          
+
       - name: Clone infra repo
         run: |
-          git clone https://x-access-token:${{ secrets.GITHUB_PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git infra
+          git clone https://x-access-token:${{ secrets.PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git infra
           cd infra
           git checkout main
 
@@ -109,119 +109,32 @@ jobs:
           git commit -m "ci: update auth-service image -> ${NEW_IMAGE}" || echo "No changes to commit"
           git push origin main
 
-      - name: Trigger ArgoCD sync via CLI (sanitized host, short poll, --insecure)
+      - name: Trigger ArgoCD sync via CLI (using username/password)
         env:
-          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-          ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
-          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+            ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+            ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+            ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
-          set -euo pipefail
-          echo "---- ArgoCD CLI sync (sanitized host, short poll) ----"
+            set -euo pipefail
+            echo "---- ArgoCD CLI sync with username/password ----"
 
-          if [ -z "${ARGOCD_SERVER:-}" ]; then
-            echo "ERROR: ARGOCD_SERVER is empty"
-            exit 2
-          fi
+            HOST="${ARGOCD_SERVER#https://}"
+            HOST="${HOST#http://}"
+            HOST="${HOST%/}"
+            echo "Using ArgoCD host: $HOST"
 
-          HOST="${ARGOCD_SERVER#https://}"
-          HOST="${HOST#http://}"
-          HOST="${HOST%/}"
-          echo "Using ArgoCD host: $HOST"
+            # download argocd CLI
+            curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
+            chmod +x ./argocd
+            ./argocd version --client || true
 
-          curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
-          chmod +x ./argocd
-          ./argocd version --client || true
+            # login using username/password
+            ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure
 
-          TOKEN=""
-          if [ -n "${ARGOCD_TOKEN:-}" ]; then
-            TOKEN="${ARGOCD_TOKEN}"
-            echo "Using ARGOCD_TOKEN from secrets (length=$(echo -n \"$TOKEN\" | wc -c))"
-          fi
-
-          run_argocd() {
-            if [ -n "$TOKEN" ]; then
-              eval ./argocd --server "$HOST" --insecure --grpc-web --auth-token \"$TOKEN\" "$@"
-            else
-              ./argocd --server "$HOST" --insecure --grpc-web "$@"
-            fi
-          }
-
-          echo "---- account get-user-info (diagnostic) ----"
-          set +e
-          run_argocd account get-user-info -o json
-          rc_userinfo=$?
-          set -e
-          if [ $rc_userinfo -ne 0 ]; then
-            echo "Warning: account get-user-info failed (token/session may lack read permissions). rc=$rc_userinfo"
-          else
-            echo "account get-user-info succeeded."
-          fi
-
-          echo "---- app get auth (diagnostic) ----"
-          set +e
-          run_argocd app get auth -o json
-          rc_appget=$?
-          set -e
-          if [ $rc_appget -ne 0 ]; then
-            echo "Warning: app 'auth' not found or access denied (rc=$rc_appget)."
-          else
-            echo "app 'auth' found."
-          fi
-
-          echo "---- issuing app sync auth (no wait) ----"
-          set +e
-          run_argocd app sync auth --prune --force
-          rc_sync=$?
-          set -e
-          echo "app sync exit code: $rc_sync"
-
-          if [ $rc_sync -ne 0 ]; then
-            echo "app sync returned non-zero (rc=$rc_sync). Likely permission issue."
-            # quick status fetch once and bail fast
-            set +e
-            status_json=$( run_argocd app get auth -o json 2>/dev/null || true )
-            set -e
-            echo "Last known status:"
-            echo "$status_json" | jq . || true
-            echo "ERROR: sync failed. If you see 'permission denied' in earlier logs, grant 'applications sync' to this account/token."
-            exit 5
-          fi
-
-          # short poll: try a few times (reduced from 30)
-          echo "---- short polling app status (max 3 tries) ----"
-          tries=3
-          sleep_sec=4
-          ok=0
-          for i in $(seq 1 $tries); do
-            sleep $sleep_sec
-            set +e
-            status_json=$( run_argocd app get auth -o json 2>/dev/null || true )
-            rc_status=$?
-            set -e
-            if [ $rc_status -ne 0 ]; then
-              echo "Attempt $i/$tries: cannot get app status (rc=$rc_status)."
-              continue
-            fi
-            phase=$(echo "$status_json" | jq -r '.status.operationState.phase // empty' 2>/dev/null || true)
-            syncstatus=$(echo "$status_json" | jq -r '.status.sync.status // empty' 2>/dev/null || true)
-            echo "Attempt $i/$tries: operationState.phase='$phase' sync.status='$syncstatus'"
-            if [ "$phase" = "Succeeded" ] || [ "$syncstatus" = "Synced" ]; then
-              echo "ArgoCD app is synced/succeeded."
-              ok=1
-              break
-            fi
-          done
-
-          if [ $ok -ne 1 ]; then
-            echo "App did not reach Synced/Succeeded within short timeout or encountered error."
-            echo "Last status JSON:"
-            echo "$status_json" | jq . || true
-            exit 5
-          fi
-
-          echo "ArgoCD sync finished successfully."
+            # sync app
+            ./argocd app sync auth --prune --force --grpc-web
 
 
       - name: Cleanup local images
         run: docker image prune -af || true
+#.
