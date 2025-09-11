@@ -91,26 +91,30 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Trigger ArgoCD sync via CLI (using username/password)
+      - name: Trigger ArgoCD sync via CLI (root app)
         env:
             ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
             ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
             ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
             set -euo pipefail
-            echo "---- ArgoCD CLI sync with username/password ----"
+            echo "---- ArgoCD CLI sync with root app ----"
 
             HOST="${ARGOCD_SERVER#https://}"
             HOST="${HOST#http://}"
             HOST="${HOST%/}"
             echo "Using ArgoCD host: $HOST"
 
+            # ArgoCD CLI 다운로드
             curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
             chmod +x ./argocd
             ./argocd version --client || true
 
+            # 로그인
             ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure
-            ./argocd app sync auth --prune --force --grpc-web
+
+            # root 앱 기준 sync
+            ./argocd app sync moyeorak-root --prune --force --grpc-web
 
       - name: Cleanup local images
         run: docker image prune -af || true
