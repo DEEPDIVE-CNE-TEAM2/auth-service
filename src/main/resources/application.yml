@@ -5,7 +5,7 @@ spring:
   datasource:
     #url: jdbc:mysql://localhost:3306/moyeorak_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     #url: ${SPRING_DATASOURCE_URL:jdbc:mysql://localhost:3306/moyeorak_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8}
-    url: jdbc:mysql://goorm-mysql.c92y0sa8e7t2.ap-northeast-2.rds.amazonaws.com:3306/moyeorak_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+    url: jdbc:mysql://auth-db.c92y0sa8e7t2.ap-northeast-2.rds.amazonaws.com/auth_db?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
     ausername: choi
     password: 1q2w3e4r!!
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -19,8 +19,28 @@ spring:
     show-sql: false
 
   jwt:
-    #private-key-path: ${JWT_PRIVATE_KEY_PATH}
-    #public-key-path: ${JWT_PUBLIC_KEY_PATHa}
-    private-key-path: /opt/auth-service/src/main/resources/keys/private_pkcs8.pem
-    public-key-path: /opt/auth-service/src/main/resources/keys/public.pem
+    # MSA 실행 버전
+    private-key-path: ${JWT_PRIVATE_KEY_PATH}
+    public-key-path: ${JWT_PUBLIC_KEY_PATH}
+    
+    ## AWS EC2 실행 버전
+    #private-key-path: /opt/auth-service/src/main/resources/keys/private_pkcs8.pem
+    #public-key-path: /opt/auth-service/src/main/resources/keys/public.pem
+    
+    ## Dockerfile 실행 버전
+    #private-key-path: file:/moyeorak/config/private_pkcs8.pem
+    #public-key-path: file:/moyeorak/config/public.pem
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
+
+logging:
+  level:
+    root: INFO
+    com.moyeorak: DEBUG  # JwtAuthFilter 패키지
 

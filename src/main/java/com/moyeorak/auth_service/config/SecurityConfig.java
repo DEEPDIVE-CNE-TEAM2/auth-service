@@ -46,9 +46,9 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
-                                "/auth/.well-known/**",
                                 "/jwks"
-
+				"/auth/.well-known/**",
+				"/actuator/**"
                         ).permitAll()
 
                         // --- 그 외 API는 JWT 인증 필요 ---
@@ -80,7 +80,9 @@ public class SecurityConfig {
                 "http://localhost:3000",
                 "http://localhost:8080",
                 "http://localhost:5173",
-                "http://127.0.0.1:5173"
+                "http://127.0.0.1:5173",
+		"https://api.moyeorak.cloud",   // API Gateway/ALB 도메인
+    		"https://moyeorak.cloud" 
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
