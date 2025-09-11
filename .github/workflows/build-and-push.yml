@@ -11,8 +11,6 @@ env:
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
   GRADLE_VERSION: 7.6
-  ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-  ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
 
 jobs:
   build-push:
@@ -80,6 +78,7 @@ jobs:
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
+          set -euo pipefail
           SHORT=${SHORT_SHA::7}
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
@@ -91,9 +90,12 @@ jobs:
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
       - name: Trigger ArgoCD sync via CLI (sanitized host, poll status, --insecure)
+        # Required secrets (prefer to set ARGOCD_TOKEN). Fallback to ARGOCD_USERNAME + ARGOCD_PASSWORD if token absent.
         env:
           ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
           ARGOCD_TOKEN: ${{ secrets.ARGOCD_TOKEN }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
           set -euo pipefail
           echo "---- ArgoCD CLI sync (sanitized host, poll status) ----"
@@ -102,10 +104,6 @@ jobs:
             echo "ERROR: ARGOCD_SERVER is empty"
             exit 2
           fi
-          if [ -z "${ARGOCD_TOKEN:-}" ]; then
-            echo "ERROR: ARGOCD_TOKEN is empty"
-            exit 3
-          fi
 
           # sanitize server: strip protocol and trailing slash
           HOST="${ARGOCD_SERVER#https://}"
@@ -113,21 +111,71 @@ jobs:
           HOST="${HOST%/}"
           echo "Using ArgoCD host: $HOST"
 
-          # download argocd CLI
+          # download argocd CLI (stable latest release binary)
           curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
           chmod +x ./argocd
 
           # show client version
           ./argocd version --client || true
 
-          # diagnostic: account info (use --insecure to bypass cert issue)
+          # Prepare auth: prefer secret token, else try username/password login
+          AUTH_FLAGS=""
+          TOKEN=""
+          if [ -n "${ARGOCD_TOKEN:-}" ]; then
+            TOKEN="${ARGOCD_TOKEN}"
+            AUTH_FLAGS="--auth-token \"$TOKEN\""
+            echo "Using ARGOCD_TOKEN from secrets (length=$(echo -n \"$TOKEN\" | wc -c))"
+          else
+            if [ -n "${ARGOCD_USERNAME:-}" ] && [ -n "${ARGOCD_PASSWORD:-}" ]; then
+              echo "No ARGOCD_TOKEN provided — attempting argocd login with username/password"
+              # Attempt login (stores session); --grpc-web recommended for some setups
+              set +e
+              ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure --grpc-web
+              rc_login=$?
+              set -e
+              if [ $rc_login -ne 0 ]; then
+                echo "ERROR: argocd login failed (rc=$rc_login). Check ARGOCD_USERNAME / ARGOCD_PASSWORD and host connectivity."
+                exit 4
+              fi
+
+              # try to generate a token for later calls (may fail if account lacks permission)
+              set +e
+              TOKEN_OUT=$(./argocd account generate-token --account "$ARGOCD_USERNAME" 2>/dev/null || true)
+              rc_gen=$?
+              set -e
+              if [ $rc_gen -eq 0 ] && [ -n "$TOKEN_OUT" ]; then
+                TOKEN="$TOKEN_OUT"
+                AUTH_FLAGS="--auth-token \"$TOKEN\""
+                echo "Generated token via argocd account generate-token (length=$(echo -n \"$TOKEN\" | wc -c))"
+              else
+                echo "Note: could not generate token for account (may lack permission). Continuing using logged-in session (CLI will reuse it)."
+                AUTH_FLAGS=""  # rely on login session
+              fi
+            else
+              echo "ERROR: No ARGOCD_TOKEN and no ARGOCD_USERNAME/ARGOCD_PASSWORD provided. Set one of these in repo secrets."
+              exit 3
+            fi
+          fi
+
+          # helper to run argocd optionally with --auth-token if set
+          run_argocd() {
+            # $@ is the argocd subcommand; we must properly expand auth flags
+            if [ -n "$TOKEN" ]; then
+              # eval so AUTH_FLAGS quotes work
+              eval ./argocd --server "$HOST" --insecure --grpc-web --auth-token \"$TOKEN\" "$@"
+            else
+              ./argocd --server "$HOST" --insecure --grpc-web "$@"
+            fi
+          }
+
+          # diagnostic: account get-user-info
           echo "---- account get-user-info (diagnostic) ----"
           set +e
-          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" --insecure --grpc-web account get-user-info -o json
+          run_argocd account get-user-info -o json
           rc_userinfo=$?
           set -e
           if [ $rc_userinfo -ne 0 ]; then
-            echo "Warning: account get-user-info failed (token may lack read permissions or TLS/host issue)."
+            echo "Warning: account get-user-info failed (token/session may lack read permissions or TLS/host issue). rc=$rc_userinfo"
           else
             echo "account get-user-info succeeded."
           fi
@@ -135,27 +183,27 @@ jobs:
           # diagnostic: check app exists and show some status
           echo "---- app get auth (diagnostic) ----"
           set +e
-          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" --insecure --grpc-web app get auth -o json
+          run_argocd app get auth -o json
           rc_appget=$?
           set -e
           if [ $rc_appget -ne 0 ]; then
             echo "Warning: app 'auth' not found or access denied (rc=$rc_appget)."
-            # we continue to attempt sync anyway; if app missing it'll fail later
+            # Continue — will likely fail on sync if permissions missing.
           else
             echo "app 'auth' found."
           fi
 
-          # run sync (no --wait / --retry — do a manual poll after issuing sync)
+          # issue sync
           echo "---- issuing app sync auth (no wait) ----"
           set +e
-          ./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" --insecure --grpc-web app sync auth --prune --force
+          run_argocd app sync auth --prune --force
           rc_sync=$?
           set -e
           echo "app sync exit code: $rc_sync"
           if [ $rc_sync -ne 0 ]; then
-            echo "app sync command returned non-zero (possible permission error)."
-            # show last 200 chars of user-info diagnostic if available
-            echo "If you saw a previous 'permission denied' message, token likely lacks sync permission."
+            echo "app sync command returned non-zero (possible permission error). rc=$rc_sync"
+            echo "If you saw a previous 'permission denied' message, the token/account likely lacks 'applications sync' permission."
+            # Do not exit yet — poll below will show details and final exit will be non-zero.
           fi
 
           # poll status up to timeout (30 tries * 5s = 150s)
@@ -166,7 +214,7 @@ jobs:
           for i in $(seq 1 $tries); do
             sleep $sleep_sec
             set +e
-            status_json=$(./argocd --server "$HOST" --auth-token "$ARGOCD_TOKEN" --insecure --grpc-web app get auth -o json 2>/dev/null)
+            status_json=$( { run_argocd app get auth -o json 2>/dev/null || true; } )
             rc_status=$?
             set -e
             if [ $rc_status -ne 0 ]; then
@@ -174,7 +222,6 @@ jobs:
               continue
             fi
 
-            # extract either operationState.phase or sync.status
             phase=$(echo "$status_json" | jq -r '.status.operationState.phase // empty' 2>/dev/null || true)
             syncstatus=$(echo "$status_json" | jq -r '.status.sync.status // empty' 2>/dev/null || true)
             echo "Attempt $i/$tries: operationState.phase='$phase' sync.status='$syncstatus'"
@@ -185,7 +232,6 @@ jobs:
               break
             fi
 
-            # check for explicit failed/error
             if [ "$phase" = "Error" ] || [ "$phase" = "Failed" ] || [ "$syncstatus" = "Unknown" ]; then
               echo "Detected failure state: phase='$phase' sync.status='$syncstatus'"
               break
@@ -194,14 +240,26 @@ jobs:
 
           if [ $ok -ne 1 ]; then
             echo "App did not reach Synced/Succeeded within timeout or encountered error."
-            # print last status_json for debugging
-            echo "$status_json" | jq .
-            # If permission denied earlier you'll likely see it here.
+            echo "Last known status JSON:"
+            echo "$status_json" | jq . || true
+
+            # If there's a permission denied earlier, surface a helpful message
+            echo "Likely cause: the token or account used by this workflow does not have 'applications sync' permission on the ArgoCD server."
+            echo "Fix options:"
+            echo " 1) Use an ArgoCD API token with sync permissions (preferred) and set it to repo secret ARGOCD_TOKEN."
+            echo " 2) Provide ARGOCD_USERNAME + ARGOCD_PASSWORD of an account that can sync and make sure it can 'generate-token' or the account has sync rights."
+            echo
+            echo "Example RBAC (argocd-rbac-cm) snippet to allow a user to sync apps:"
+            echo "  # argocd-rbac-cm (namespace: argocd)"
+            echo "  # data.policy.csv:"
+            echo "  p, role:deployer, applications, sync, */*, allow"
+            echo "  g, SOME_USERNAME, role:deployer"
+            echo
+            echo "Ask your ArgoCD admin to either create an API token with sync permissions or add appropriate RBAC rules."
             exit 5
           fi
 
           echo "ArgoCD sync finished successfully."
-
 
       - name: Cleanup local images
         run: docker image prune -af || true
