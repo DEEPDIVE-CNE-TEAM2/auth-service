@@ -10,7 +10,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
-  GRADLE_VERSION: 7.6 #
+  GRADLE_VERSION: 7.6
 
 jobs:
   build-push:
@@ -19,51 +19,25 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Print repo files (debug)
-        run: |
-          echo "PWD=$(pwd)"
-          ls -la
-          ls -la gradle || true
-          ls -la gradle/wrapper || true
-          cat .dockerignore || true
-
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Install pinned Gradle (non-interactive) and expose to PATH
+      - name: Install Gradle
         run: |
-          set -euo pipefail
-          echo "Installing Gradle ${GRADLE_VERSION} to /opt (non-interactive)"
           sudo apt-get update -y
           sudo apt-get install -y curl unzip jq
-          DIST="gradle-${GRADLE_VERSION}-bin.zip"
-          URL="https://services.gradle.org/distributions/${DIST}"
-          wget -q "$URL" -O /tmp/gradle.zip
-          sudo unzip -o -q /tmp/gradle.zip -d /opt
+          wget -q https://services.gradle.org/distributions/gradle-${GRADLE_VERSION}-bin.zip -O /tmp/gradle.zip
+          sudo unzip -o /tmp/gradle.zip -d /opt
           sudo ln -sfn "/opt/gradle-${GRADLE_VERSION}" /opt/gradle
           echo "/opt/gradle/bin" >> $GITHUB_PATH
-          echo "Gradle installed: $(/opt/gradle/bin/gradle -v | head -n 1)"
 
-      - name: (optional) Generate gradle wrapper if missing
+      - name: Build JAR
         run: |
-          set -euo pipefail
-          if [ -f gradle/wrapper/gradle-wrapper.jar ]; then
-            echo "gradle-wrapper.jar present, skipping wrapper generation"
-          else
-            /opt/gradle/bin/gradle wrapper || true
-          fi
-
-      - name: Build JAR on runner using pinned Gradle
-        run: |
-            set -euo pipefail
-            /opt/gradle/bin/gradle --no-daemon clean bootJar -x test --warning-mode all
-            ls -la build/libs || true
-            # Dockerfile과 동일한 이름으로 복사
-            cp build/libs/*.jar build/libs/enrollment-service-0.0.1-SNAPSHOT.jar
-
+          /opt/gradle/bin/gradle --no-daemon clean bootJar -x test --warning-mode all
+          cp build/libs/*.jar build/libs/auth-service-0.0.1-SNAPSHOT.jar
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v2
@@ -77,16 +51,13 @@ jobs:
           aws ecr get-login-password --region ${{ env.AWS_REGION }} \
             | docker login --username AWS --password-stdin ${{ env.ECR_REGISTRY }}
 
-      - name: Build Docker image and push tags
+      - name: Build Docker image and push
         env:
           SHORT_SHA: ${{ github.sha }}
         run: |
-          set -euo pipefail
           SHORT=${SHORT_SHA::7}
           LATEST_TAG=${ECR_IMAGE_NAME}:latest
           SHA_TAG=${ECR_IMAGE_NAME}:${SHORT}
-
-          # Dockerfile에서 auth-service.jar로 COPY되도록 고정
           docker build -t ${SHA_TAG} .
           docker tag ${SHA_TAG} ${LATEST_TAG}
           docker push ${SHA_TAG}
@@ -94,60 +65,19 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Clone infra repo
-        run: |
-          git clone https://x-access-token:${{ secrets.PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git infra
-          cd infra
-          git checkout main
-
-      - name: Update infra manifest with new image
-        run: |
-          cd infra
-          SHORT_SHA=${GITHUB_SHA::7}
-          NEW_IMAGE="${ECR_IMAGE_NAME}:${SHORT_SHA}"
-          echo "Updating image -> $NEW_IMAGE"
-          
-          # yq 설치
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-
-          # manifest 업데이트
-          yq eval -i '(.spec.template.spec.containers[] | select(.name=="auth") .image) = strenv(NEW_IMAGE)' k8s/auth/auth-all.yml
-
-          # git commit & push
-          git config user.email "github-actions@github.com"
-          git config user.name "github-actions"
-          git add k8s/auth/auth-all.yml
-          git commit -m "ci: update auth-service image -> ${NEW_IMAGE}" || echo "No changes to commit"
-          git push https://x-access-token:${{ secrets.PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git main
-
-
-      - name: Trigger ArgoCD sync via CLI (using username/password)
+      - name: Trigger ArgoCD sync
         env:
-            ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
-            ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
-            ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
+          ARGOCD_SERVER: ${{ secrets.ARGOCD_SERVER }}
+          ARGOCD_USERNAME: ${{ secrets.ARGOCD_USERNAME }}
+          ARGOCD_PASSWORD: ${{ secrets.ARGOCD_PASSWORD }}
         run: |
-            set -euo pipefail
-            echo "---- ArgoCD CLI sync with username/password ----"
-
-            HOST="${ARGOCD_SERVER#https://}"
-            HOST="${HOST#http://}"
-            HOST="${HOST%/}"
-            echo "Using ArgoCD host: $HOST"
-
-            # download argocd CLI
-            curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
-            chmod +x ./argocd
-            ./argocd version --client || true
-
-            # login using username/password
-            ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure
-
-            # sync app
-            ./argocd app sync auth --prune --force --grpc-web
-
+          HOST="${ARGOCD_SERVER#https://}"
+          HOST="${HOST#http://}"
+          HOST="${HOST%/}"
+          curl -sSL https://github.com/argoproj/argo-cd/releases/latest/download/argocd-linux-amd64 -o ./argocd
+          chmod +x ./argocd
+          ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure
+          ./argocd app sync auth --prune --force --grpc-web
 
       - name: Cleanup local images
         run: docker image prune -af || true
-#.
