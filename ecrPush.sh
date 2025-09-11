@@ -12,33 +12,30 @@ ECR_URI=${3:-004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/$SERVICE_NAME} # 
 GRADLE_TASK=${4:-build}             # 세 번째 인자: gradle task, 기본값 build
 AWS_REGION=${5:-ap-northeast-2}     # AWS 리전
 K8S_NAMESPACE=${6:-production}        # Kubernetes namespace, 기본값 production
-K8S_MANIFEST_PATH=${7:-/root/k8s-resource/$NAME/$NAME-all.yaml} # 매니페스트 경로
+TAG=$(date +%Y%m%d-%H%M%S)
 # ------------------------------------
 
 echo "=== 1️⃣ Gradle Build ==="
 ./gradlew $GRADLE_TASK || { echo "Gradle build failed"; exit 1; }
 
 echo "=== 2️⃣ Docker Build ==="
-docker build -t $SERVICE_NAME . || { echo "Docker build failed"; exit 1; }
+docker build -t $SERVICE_NAME:$TAG . || { echo "Docker build failed"; exit 1; }
 
 echo "=== 3️⃣ ECR 로그인 ==="
 aws ecr get-login-password --region $AWS_REGION | \
 docker login --username AWS --password-stdin $ECR_URI || { echo "ECR login failed"; exit 1; }
 
 echo "=== 4️⃣ Docker Tag ==="
-docker tag $SERVICE_NAME:latest $ECR_URI:latest || { echo "Docker tag failed"; exit 1; }
+docker tag $SERVICE_NAME:$TAG $ECR_URI:$TAG || { echo "Docker tag failed"; exit 1; }
+#docker tag $SERVICE_NAME:$TAG $ECR_URI:latest
 
 echo "=== 5️⃣ Docker Push ==="
-docker push $ECR_URI:latest || { echo "Docker push failed"; exit 1; }
+docker push $ECR_URI:$TAG || { echo "Docker push failed"; exit 1; }
 
-echo "=== 6️⃣ Kubernetes Deployment ==="
+echo "=== 6️⃣ Update Kubernetes Deployment ==="
+kubectl set image deployment/$NAME-deployment \
+  $SERVICE_NAME=$ECR_URI:$TAG \
+  -n $K8S_NAMESPACE || { echo "Deployment update failed"; exit 1; }
 
-# 기존 Deployment 삭제
-echo "Deleting existing deployment $SERVICE_NAME in namespace $K8S_NAMESPACE..."
-kubectl -n $K8S_NAMESPACE delete deployment $SERVICE_NAME --ignore-not-found
-
-# 매니페스트 적용
-echo "Applying Kubernetes manifest: $K8S_MANIFEST_PATH"
-kubectl apply -f $K8S_MANIFEST_PATH || { echo "kubectl apply failed"; exit 1; }
-
-echo "✅  Deployment completed for $SERVICE_NAME in namespace $K8S_NAMESPACE"
+echo "✅   Deployment steps completed for $SERVICE_NAME"
+~
