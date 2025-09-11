@@ -1,0 +1,745 @@
+nohup: ignoring input
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:01:00.294 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 122935 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:01:00.302 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:01:05.018 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:01:05.024 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:01:05.026 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:01:05.351 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:01:05.409 [1;31m[ERROR][0;39m [1;31m[private.pem 파일 읽기 실패: /opt/auth-service/keys/private.pem (No such file or directory)][0;39m [c.m.a.security.JwtProvider.init:65]
+08:01:05.416 [1;31m[ERROR][0;39m [1;31m[Failed to load public.pem][0;39m [c.m.a.security.JwtProvider.loadPublicKey:144]
+java.io.FileNotFoundException: /opt/auth-service/keys/private.pem (No such file or directory)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:216)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:157)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:111)
+	at com.moyeorak.auth_service.security.JwtProvider.loadPublicKey(JwtProvider.java:126)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke(InitDestroyAnnotationBeanPostProcessor.java:457)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:401)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:219)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:422)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1778)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904)
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1355)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.getOrderedBeansOfType(ServletContextInitializerBeans.java:210)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:173)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:168)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAdaptableBeans(ServletContextInitializerBeans.java:153)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.<init>(ServletContextInitializerBeans.java:86)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.getServletContextInitializerBeans(ServletWebServerApplicationContext.java:266)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.selfInitialize(ServletWebServerApplicationContext.java:240)
+	at org.springframework.boot.web.embedded.tomcat.TomcatStarter.onStartup(TomcatStarter.java:52)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4866)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardHost.startInternal(StandardHost.java:845)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardEngine.startInternal(StandardEngine.java:240)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardService.startInternal(StandardService.java:433)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:921)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.startup.Tomcat.start(Tomcat.java:437)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:126)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.<init>(TomcatWebServer.java:105)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getTomcatWebServer(TomcatServletWebServerFactory.java:499)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer(TomcatServletWebServerFactory.java:218)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:188)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:162)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:618)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+08:01:06.899 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:01:07.410 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@1e5b33e5][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:01:07.416 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:01:07.517 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:01:07.521 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:01:12.468 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:01:12.475 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:01:12.502 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:01:12.507 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:01:12.637 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:12:19.255 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123128 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:12:19.268 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:12:23.850 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:12:23.856 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:12:23.856 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:12:24.198 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:12:24.262 [1;31m[ERROR][0;39m [1;31m[private.pem 파일 읽기 실패: /opt/auth-service/keys/private.pem (No such file or directory)][0;39m [c.m.a.security.JwtProvider.init:65]
+08:12:24.269 [1;31m[ERROR][0;39m [1;31m[Failed to load public.pem][0;39m [c.m.a.security.JwtProvider.loadPublicKey:144]
+java.io.FileNotFoundException: /opt/auth-service/keys/private.pem (No such file or directory)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:216)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:157)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:111)
+	at com.moyeorak.auth_service.security.JwtProvider.loadPublicKey(JwtProvider.java:126)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke(InitDestroyAnnotationBeanPostProcessor.java:457)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:401)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:219)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:422)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1778)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904)
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1355)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.getOrderedBeansOfType(ServletContextInitializerBeans.java:210)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:173)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:168)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAdaptableBeans(ServletContextInitializerBeans.java:153)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.<init>(ServletContextInitializerBeans.java:86)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.getServletContextInitializerBeans(ServletWebServerApplicationContext.java:266)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.selfInitialize(ServletWebServerApplicationContext.java:240)
+	at org.springframework.boot.web.embedded.tomcat.TomcatStarter.onStartup(TomcatStarter.java:52)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4866)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardHost.startInternal(StandardHost.java:845)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardEngine.startInternal(StandardEngine.java:240)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardService.startInternal(StandardService.java:433)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:921)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.startup.Tomcat.start(Tomcat.java:437)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:126)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.<init>(TomcatWebServer.java:105)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getTomcatWebServer(TomcatServletWebServerFactory.java:499)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer(TomcatServletWebServerFactory.java:218)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:188)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:162)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:618)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+08:12:25.774 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:12:26.261 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@654b899f][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:12:26.269 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:12:26.365 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:12:26.367 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:12:30.873 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:12:30.882 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:12:30.903 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:12:30.908 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:12:30.989 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:15:34.595 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123301 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:15:34.606 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:15:39.174 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:15:39.180 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:15:39.182 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:15:39.483 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:15:39.541 [1;31m[ERROR][0;39m [1;31m[private.pem 파일 읽기 실패: /opt/auth-service/keys/private.pem (No such file or directory)][0;39m [c.m.a.security.JwtProvider.init:65]
+08:15:39.550 [1;31m[ERROR][0;39m [1;31m[Failed to load public.pem][0;39m [c.m.a.security.JwtProvider.loadPublicKey:144]
+java.io.FileNotFoundException: /opt/auth-service/keys/private.pem (No such file or directory)
+	at java.base/java.io.FileInputStream.open0(Native Method)
+	at java.base/java.io.FileInputStream.open(FileInputStream.java:216)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:157)
+	at java.base/java.io.FileInputStream.<init>(FileInputStream.java:111)
+	at com.moyeorak.auth_service.security.JwtProvider.loadPublicKey(JwtProvider.java:126)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMethod.invoke(InitDestroyAnnotationBeanPostProcessor.java:457)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor$LifecycleMetadata.invokeInitMethods(InitDestroyAnnotationBeanPostProcessor.java:401)
+	at org.springframework.beans.factory.annotation.InitDestroyAnnotationBeanPostProcessor.postProcessBeforeInitialization(InitDestroyAnnotationBeanPostProcessor.java:219)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.applyBeanPostProcessorsBeforeInitialization(AbstractAutowireCapableBeanFactory.java:422)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.initializeBean(AbstractAutowireCapableBeanFactory.java:1778)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:600)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.config.DependencyDescriptor.resolveCandidate(DependencyDescriptor.java:254)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.doResolveDependency(DefaultListableBeanFactory.java:1443)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.resolveDependency(DefaultListableBeanFactory.java:1353)
+	at org.springframework.beans.factory.support.ConstructorResolver.resolveAutowiredArgument(ConstructorResolver.java:904)
+	at org.springframework.beans.factory.support.ConstructorResolver.createArgumentArray(ConstructorResolver.java:782)
+	at org.springframework.beans.factory.support.ConstructorResolver.autowireConstructor(ConstructorResolver.java:237)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.autowireConstructor(AbstractAutowireCapableBeanFactory.java:1355)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1192)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:205)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.getOrderedBeansOfType(ServletContextInitializerBeans.java:210)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:173)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAsRegistrationBean(ServletContextInitializerBeans.java:168)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.addAdaptableBeans(ServletContextInitializerBeans.java:153)
+	at org.springframework.boot.web.servlet.ServletContextInitializerBeans.<init>(ServletContextInitializerBeans.java:86)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.getServletContextInitializerBeans(ServletWebServerApplicationContext.java:266)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.selfInitialize(ServletWebServerApplicationContext.java:240)
+	at org.springframework.boot.web.embedded.tomcat.TomcatStarter.onStartup(TomcatStarter.java:52)
+	at org.apache.catalina.core.StandardContext.startInternal(StandardContext.java:4866)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardHost.startInternal(StandardHost.java:845)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1332)
+	at org.apache.catalina.core.ContainerBase$StartChild.call(ContainerBase.java:1322)
+	at java.base/java.util.concurrent.FutureTask.run(FutureTask.java:264)
+	at org.apache.tomcat.util.threads.InlineExecutorService.execute(InlineExecutorService.java:75)
+	at java.base/java.util.concurrent.AbstractExecutorService.submit(AbstractExecutorService.java:145)
+	at org.apache.catalina.core.ContainerBase.startInternal(ContainerBase.java:866)
+	at org.apache.catalina.core.StandardEngine.startInternal(StandardEngine.java:240)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardService.startInternal(StandardService.java:433)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.core.StandardServer.startInternal(StandardServer.java:921)
+	at org.apache.catalina.util.LifecycleBase.start(LifecycleBase.java:171)
+	at org.apache.catalina.startup.Tomcat.start(Tomcat.java:437)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.initialize(TomcatWebServer.java:126)
+	at org.springframework.boot.web.embedded.tomcat.TomcatWebServer.<init>(TomcatWebServer.java:105)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getTomcatWebServer(TomcatServletWebServerFactory.java:499)
+	at org.springframework.boot.web.embedded.tomcat.TomcatServletWebServerFactory.getWebServer(TomcatServletWebServerFactory.java:218)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.createWebServer(ServletWebServerApplicationContext.java:188)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.onRefresh(ServletWebServerApplicationContext.java:162)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:618)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+08:15:41.051 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:15:41.528 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@654b899f][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:15:41.535 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:15:41.656 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:15:41.661 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:15:46.590 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:15:46.598 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:15:46.623 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:15:46.627 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:15:46.709 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:20:02.042 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123522 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:20:02.050 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:20:06.733 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:20:06.740 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:20:06.740 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:20:07.126 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:20:07.201 [1;31m[ERROR][0;39m [1;31m[RSA PrivateKey 파싱 실패: java.security.InvalidKeyException: IOException : DerValue.getBigIntegerInternal, not expected 48][0;39m [c.m.a.security.JwtProvider.init:67]
+08:20:07.212 [34m[INFO][0;39m [34m[RSA PublicKey loaded successfully][0;39m [c.m.a.security.JwtProvider.loadPublicKey:141]
+08:20:08.686 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:20:09.202 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@459d2ee6][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:20:09.211 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:20:09.302 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:20:09.304 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:20:13.776 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:20:13.783 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:20:13.805 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:20:13.811 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:20:13.896 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:24:52.733 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123568 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:24:52.742 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:24:57.237 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:24:57.243 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:24:57.244 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:24:57.559 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:24:57.627 [1;31m[ERROR][0;39m [1;31m[RSA PrivateKey 파싱 실패: java.security.InvalidKeyException: IOException : DerValue.getBigIntegerInternal, not expected 48][0;39m [c.m.a.security.JwtProvider.init:67]
+08:24:57.637 [34m[INFO][0;39m [34m[RSA PublicKey loaded successfully][0;39m [c.m.a.security.JwtProvider.loadPublicKey:141]
+08:24:59.020 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:24:59.522 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@459d2ee6][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:24:59.529 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:24:59.645 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:24:59.649 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:25:04.380 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:25:04.389 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:25:04.411 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:25:04.415 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:25:04.506 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:30:08.949 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123762 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:30:08.963 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:30:13.861 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:30:13.867 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:30:13.867 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:30:14.224 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:30:14.297 [1;31m[ERROR][0;39m [1;31m[RSA PrivateKey 파싱 실패: java.security.InvalidKeyException: IOException : DerValue.getBigIntegerInternal, not expected 48][0;39m [c.m.a.security.JwtProvider.init:67]
+08:30:14.307 [34m[INFO][0;39m [34m[RSA PublicKey loaded successfully][0;39m [c.m.a.security.JwtProvider.loadPublicKey:141]
+08:30:15.821 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:30:16.301 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@459d2ee6][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:30:16.309 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:30:16.428 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:30:16.431 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:30:20.953 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:30:20.960 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:30:20.980 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:30:20.985 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:30:21.067 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::                (v3.2.4)
+
+08:33:26.960 [34m[INFO][0;39m [34m[Starting AuthServiceApplication v0.0.1-SNAPSHOT using Java 17.0.16 with PID 123880 (/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar started by root in /opt/auth-service)][0;39m [o.s.boot.StartupInfoLogger.logStarting:50]
+08:33:26.967 [34m[INFO][0;39m [34m[No active profile set, falling back to 1 default profile: "default"][0;39m [o.s.boot.SpringApplication.logStartupProfileInfo:654]
+08:33:31.540 [34m[INFO][0;39m [34m[Initializing ProtocolHandler ["http-nio-8080"]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:33:31.545 [34m[INFO][0;39m [34m[Starting service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:33:31.546 [34m[INFO][0;39m [34m[Starting Servlet engine: [Apache Tomcat/10.1.19]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:33:31.855 [34m[INFO][0;39m [34m[Initializing Spring embedded WebApplicationContext][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:33:31.929 [1;31m[ERROR][0;39m [1;31m[RSA PrivateKey 파싱 실패: java.security.InvalidKeyException: IOException : DerValue.getBigIntegerInternal, not expected 48][0;39m [c.m.a.security.JwtProvider.init:67]
+08:33:31.937 [34m[INFO][0;39m [34m[RSA PublicKey loaded successfully][0;39m [c.m.a.security.JwtProvider.loadPublicKey:141]
+08:33:33.363 [34m[INFO][0;39m [34m[HikariPool-1 - Starting...][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:110]
+08:33:33.807 [34m[INFO][0;39m [34m[HikariPool-1 - Added connection com.mysql.cj.jdbc.ConnectionImpl@459d2ee6][0;39m [com.zaxxer.hikari.pool.HikariPool.checkFailFast:565]
+08:33:33.813 [34m[INFO][0;39m [34m[HikariPool-1 - Start completed.][0;39m [com.zaxxer.hikari.HikariDataSource.getConnection:123]
+08:33:33.894 [31m[WARN][0;39m [31m[HHH90000025: MySQL8Dialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)][0;39m [o.h.e.j.d.i.DialectFactoryImpl.constructDialect:153]
+08:33:33.896 [31m[WARN][0;39m [31m[HHH90000026: MySQL8Dialect has been deprecated; use org.hibernate.dialect.MySQLDialect instead][0;39m [o.h.e.j.d.i.DialectFactoryImpl.logSelectedDialect:101]
+08:33:38.255 [31m[WARN][0;39m [31m[Exception encountered during context initialization - cancelling refresh attempt: org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception][0;39m [o.s.c.s.AbstractApplicationContext.refresh:632]
+08:33:38.261 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown initiated...][0;39m [com.zaxxer.hikari.HikariDataSource.close:350]
+08:33:38.278 [34m[INFO][0;39m [34m[HikariPool-1 - Shutdown completed.][0;39m [com.zaxxer.hikari.HikariDataSource.close:352]
+08:33:38.282 [34m[INFO][0;39m [34m[Stopping service [Tomcat]][0;39m [o.apache.juli.logging.DirectJDKLog.log:173]
+08:33:38.355 [1;31m[ERROR][0;39m [1;31m[Application run failed][0;39m [o.s.boot.SpringApplication.reportFailure:851]
+org.springframework.beans.factory.BeanCreationException: Error creating bean with name 'wellKnownController' defined in URL [jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/com/moyeorak/auth_service/controller/WellKnownController.class]: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1317)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBeanInstance(AbstractAutowireCapableBeanFactory.java:1202)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.doCreateBean(AbstractAutowireCapableBeanFactory.java:562)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.createBean(AbstractAutowireCapableBeanFactory.java:522)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.lambda$doGetBean$0(AbstractBeanFactory.java:326)
+	at org.springframework.beans.factory.support.DefaultSingletonBeanRegistry.getSingleton(DefaultSingletonBeanRegistry.java:234)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.doGetBean(AbstractBeanFactory.java:324)
+	at org.springframework.beans.factory.support.AbstractBeanFactory.getBean(AbstractBeanFactory.java:200)
+	at org.springframework.beans.factory.support.DefaultListableBeanFactory.preInstantiateSingletons(DefaultListableBeanFactory.java:975)
+	at org.springframework.context.support.AbstractApplicationContext.finishBeanFactoryInitialization(AbstractApplicationContext.java:962)
+	at org.springframework.context.support.AbstractApplicationContext.refresh(AbstractApplicationContext.java:624)
+	at org.springframework.boot.web.servlet.context.ServletWebServerApplicationContext.refresh(ServletWebServerApplicationContext.java:146)
+	at org.springframework.boot.SpringApplication.refresh(SpringApplication.java:754)
+	at org.springframework.boot.SpringApplication.refreshContext(SpringApplication.java:456)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:334)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1354)
+	at org.springframework.boot.SpringApplication.run(SpringApplication.java:1343)
+	at com.moyeorak.auth_service.AuthServiceApplication.main(AuthServiceApplication.java:12)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:569)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:91)
+	at org.springframework.boot.loader.launch.Launcher.launch(Launcher.java:53)
+	at org.springframework.boot.loader.launch.JarLauncher.main(JarLauncher.java:58)
+Caused by: org.springframework.beans.BeanInstantiationException: Failed to instantiate [com.moyeorak.auth_service.controller.WellKnownController]: Constructor threw exception
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:221)
+	at org.springframework.beans.factory.support.SimpleInstantiationStrategy.instantiate(SimpleInstantiationStrategy.java:88)
+	at org.springframework.beans.factory.support.AbstractAutowireCapableBeanFactory.instantiateBean(AbstractAutowireCapableBeanFactory.java:1311)
+	... 24 common frames omitted
+Caused by: java.io.FileNotFoundException: class path resource [keys/public.pem] cannot be resolved to absolute file path because it does not reside in the file system: jar:nested:/opt/auth-service/build/libs/auth-service-0.0.1-SNAPSHOT.jar/!BOOT-INF/classes/!/keys/public.pem
+	at org.springframework.util.ResourceUtils.getFile(ResourceUtils.java:218)
+	at org.springframework.core.io.AbstractFileResolvingResource.getFile(AbstractFileResolvingResource.java:173)
+	at com.moyeorak.auth_service.controller.WellKnownController.<init>(WellKnownController.java:28)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)
+	at java.base/jdk.internal.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:77)
+	at java.base/jdk.internal.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)
+	at java.base/java.lang.reflect.Constructor.newInstanceWithCaller(Constructor.java:500)
+	at java.base/java.lang.reflect.Constructor.newInstance(Constructor.java:481)
+	at org.springframework.beans.BeanUtils.instantiateClass(BeanUtils.java:195)
+	... 26 common frames omitted
