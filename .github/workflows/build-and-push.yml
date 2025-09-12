@@ -123,7 +123,7 @@ jobs:
 
           if git diff --quiet -- "${MANIFEST_PATH}"; then
             echo "No change in ${MANIFEST_PATH}"
-            exit 0
+            
           fi
 
           git add "${MANIFEST_PATH}"
