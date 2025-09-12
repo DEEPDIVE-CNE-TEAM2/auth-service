@@ -10,7 +10,7 @@ env:
   AWS_REGION: ap-northeast-2
   ECR_REGISTRY: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
-  GRADLE_VERSION: 7.6 #..
+  GRADLE_VERSION: 7.6 
 
 permissions:
   contents: write
