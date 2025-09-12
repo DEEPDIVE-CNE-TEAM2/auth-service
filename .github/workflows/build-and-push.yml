@@ -102,8 +102,9 @@ jobs:
           echo "IMAGE_SHA length: ${#IMAGE_SHA}"
           echo "INFRA_PAT length: ${#INFRA_PAT}"
 
-          git clone https://x-access-token:${{ secrets.PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git infra
-          cd infra
+          git clone https://x-access-token:${{ secrets.PAT }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git
+          cd moyeorak-infra
+
 
           # --- debug: who is this token for? ---
           echo "--- token -> api /user check ---"
