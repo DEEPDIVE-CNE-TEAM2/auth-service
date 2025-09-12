@@ -91,50 +91,82 @@ jobs:
           echo "IMAGE_LATEST=${LATEST_TAG}" >> $GITHUB_ENV
           echo "IMAGE_SHA=${SHA_TAG}" >> $GITHUB_ENV
 
-      - name: Checkout infra repo with PAT
-        uses: actions/checkout@v4
-        with:
-          repository: DEEPDIVE-CNE-TEAM2/moyeorak-infra
-          token: ${{ secrets.PAT }}
-          path: infra
-          ref: main
-
-      - name: Update manifest in infra and push
+      - name: Update manifest in infra and push (robust, with debug)
         env:
           IMAGE_SHA: ${{ env.IMAGE_SHA }}
+          INFRA_PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
-          echo "Updating infra manifest to use image: ${IMAGE_SHA}"
+          echo "=== Start update infra manifest (robust) ==="
+          echo "Checking ENV..."
+          echo "IMAGE_SHA length: ${#IMAGE_SHA}"
+          echo "INFRA_PAT length: ${#INFRA_PAT}"
+
           cd infra
 
-          MANIFEST_PATH="k8s/auth/auth-all.yml"
+          # --- debug: who is this token for? ---
+          echo "--- token -> api /user check ---"
+          curl -s -H "Authorization: token ${INFRA_PAT}" https://api.github.com/user | jq '.login, .id' || true
 
-          # install yq if missing
-          if ! command -v yq >/dev/null 2>&1; then
-            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-            sudo chmod +x /usr/local/bin/yq
+          echo "--- token -> repo permission check ---"
+          # Prints repo JSON (masked in Actions), then try to show permissions block
+          curl -s -H "Authorization: token ${INFRA_PAT}" https://api.github.com/repos/DEEPDIVE-CNE-TEAM2/moyeorak-infra -o /tmp/repo.json || true
+          if [ -s /tmp/repo.json ]; then
+            cat /tmp/repo.json | jq '.permissions' || cat /tmp/repo.json | sed -n '1,120p'
+          else
+            echo "WARN: repo API returned empty"
           fi
 
+          # --- ensure manifest exists ---
+          MANIFEST_PATH="k8s/auth/auth-all.yml"
           if [ ! -f "${MANIFEST_PATH}" ]; then
-            echo "ERROR: ${MANIFEST_PATH} not found in infra repo"
+            echo "ERROR: ${MANIFEST_PATH} not found in infra checkout"
             ls -la
             exit 1
           fi
 
-          # update the container image for container named "auth-service"
+          # --- update manifest ---
+          if ! command -v yq >/dev/null 2>&1; then
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+          fi
           yq eval -i '(.spec.template.spec.containers[] | select(.name=="auth-service") .image) = strenv(IMAGE_SHA)' "${MANIFEST_PATH}"
 
-          # commit & push if changed
+          # --- prepare git user ---
           git config user.email "github-actions@github.com"
           git config user.name "github-actions"
+
           if git diff --quiet -- "${MANIFEST_PATH}"; then
             echo "No change in ${MANIFEST_PATH}"
-          else
-            git add "${MANIFEST_PATH}"
-            git commit -m "ci: update auth-service image -> ${IMAGE_SHA}"
-            git push origin main
-            echo "Pushed updated manifest to infra repo"
+            exit 0
           fi
+
+          git add "${MANIFEST_PATH}"
+          git commit -m "ci: update auth-service image -> ${IMAGE_SHA}"
+
+          # --- debug current remote & credential config ---
+          echo "--- git remote -v ---"
+          git remote -v
+          echo "--- git remote get-url origin ---"
+          git remote get-url origin || true
+          echo "--- git config --get-all credential.helper ---"
+          git config --get-all credential.helper || true
+
+          # --- Force origin to token-embedded URL (token masked in logs) ---
+          TOKENED_URL="https://x-access-token:${INFRA_PAT}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git"
+          git remote set-url origin "${TOKENED_URL}"
+          echo "origin set to token-embedded URL (will be masked in logs)"
+
+          # --- Prevent credential helper from overriding ---
+          git config credential.helper ""
+
+          # --- Push using http.extraHeader to force Authorization header (robust) ---
+          AUTH_B64=$(printf '%s' "x-access-token:${INFRA_PAT}" | base64)
+          echo "Attempting push with forced Authorization header..."
+          git -c http.extraHeader="Authorization: Basic ${AUTH_B64}" push origin main
+
+          echo "=== Done push attempt ==="
+
 
       - name: Trigger ArgoCD sync via CLI (root app)
         env:
