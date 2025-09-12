@@ -44,7 +44,9 @@ public class SecurityConfig {
                                 "/actuator/**",
                                 "/health"
                         ).permitAll()
-                        .anyRequest().authenticated()
+                        //.anyRequest().authenticated()
+                        // 임시 전체 허용 나중에 삭제
+                        .anyRequest().permitAll()
                 )
 
                 // 인증 실패 / 권한 없음 처리

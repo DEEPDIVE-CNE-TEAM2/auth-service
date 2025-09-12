@@ -12,10 +12,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @Slf4j
 @RestController
@@ -36,10 +33,11 @@ public class AuthController {
 
     @Operation(summary = "로그아웃")
     @PostMapping("/logout")
-    public ResponseEntity<Void> logout(@AuthenticationPrincipal CustomUserDetails user) {
-        log.info("로그아웃 요청 진입 - email: {}", user.getEmail());
-        authService.logout(user.getEmail());
-        log.info("로그아웃 완료 - email: {}", user.getEmail());
+    public ResponseEntity<Void> logout(
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        log.info("로그아웃 요청 - userId: {}", userId);
+        authService.logout(userId);
         return ResponseEntity.ok().build();
     }
 
