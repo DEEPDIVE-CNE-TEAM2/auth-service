@@ -190,7 +190,7 @@ jobs:
             # 로그인
             ./argocd login "$HOST" --username "$ARGOCD_USERNAME" --password "$ARGOCD_PASSWORD" --insecure
 
-            # root 앱 기준 sync
+            # root 앱 기준 sync.
             ./argocd app sync moyeorak-root --prune --force --grpc-web
 
       - name: Cleanup local images
