@@ -40,10 +40,12 @@ public class UserController {
 
     @Operation(summary = "내 정보 조회")
     @GetMapping("/me")
-    public ResponseEntity<UserResponseDto> getMyInfo(@AuthenticationPrincipal CustomUserDetails user) {
-        log.info("내 정보 조회 요청 - email: {}", user.getEmail());
-        UserResponseDto response = userService.getMyInfo(user.getEmail());
-        log.info("내 정보 조회 완료 - email: {}", user.getEmail());
+    public ResponseEntity<UserResponseDto> getMyInfo(
+            @RequestHeader("X-User-Id") Long userId
+    ) {
+        log.info("내 정보 조회 요청 - userId: {}", userId);
+        UserResponseDto response = userService.getMyInfo(userId);
+        log.info("내 정보 조회 완료 - userId: {}", userId);
         return ResponseEntity.ok(response);
     }
 
@@ -51,36 +53,36 @@ public class UserController {
     @Operation(summary = "내 정보 수정")
     @PutMapping("/me")
     public ResponseEntity<UserResponseDto> updateMyInfo(
-            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestBody @Valid UserUpdateRequestDto dto
     ) {
-        log.info("내 정보 수정 요청 - email: {}", user.getEmail());
-        UserResponseDto response = userService.updateUserInfo(user.getEmail(), dto);
-        log.info("내 정보 수정 완료 - email: {}", user.getEmail());
+        log.info("내 정보 수정 요청 - userId: {}", userId);
+        UserResponseDto response = userService.updateUserInfo(userId, dto);
+        log.info("내 정보 수정 완료 - userId: {}", userId);
         return ResponseEntity.ok(response);
     }
 
     @Operation(summary = "비밀번호 변경")
     @PatchMapping("/me/password")
     public ResponseEntity<Void> changePassword(
-            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestBody @Valid UserPasswordChangeRequestDto dto
     ) {
-        log.info("비밀번호 변경 요청 - email: {}", user.getEmail());
-        userService.changePassword(user.getEmail(), dto);
-        log.info("비밀번호 변경 완료 - email: {}", user.getEmail());
+        log.info("비밀번호 변경 요청 - userId: {}", userId);
+        userService.changePassword(userId, dto);
+        log.info("비밀번호 변경 완료 - userId: {}", userId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "회원탈퇴")
     @DeleteMapping("/me")
     public ResponseEntity<Void> deleteUser(
-            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestBody @Valid UserDeleteRequestDto dto
     ) {
-        log.info("회원탈퇴 요청 - email: {}", user.getEmail());
-        userService.deleteUser(user.getEmail(), dto);
-        log.info("회원탈퇴 완료 - email: {}", user.getEmail());
+        log.info("회원탈퇴 요청 - userId: {}", userId);
+        userService.deleteUser(userId, dto);
+        log.info("회원탈퇴 완료 - userId: {}", userId);
         return ResponseEntity.ok().build();
     }
 
@@ -103,13 +105,12 @@ public class UserController {
     @Operation(summary = "비밀번호 검증")
     @PostMapping("/verify-password")
     public ResponseEntity<PasswordVerifyResponseDto> verifyPassword(
-            @AuthenticationPrincipal CustomUserDetails user,
+            @RequestHeader("X-User-Id") Long userId,
             @RequestBody @Valid PasswordVerifyRequestDto dto
     ) {
-        log.info("비밀번호 검증 요청 - email: {}", user.getEmail());
-        boolean matched = userService.verifyPassword(user.getEmail(), dto.getPassword());
-        log.info("비밀번호 검증 완료 - email: {}, matched: {}", user.getEmail(), matched);
+        log.info("비밀번호 검증 요청 - userId: {}", userId);
+        boolean matched = userService.verifyPassword(userId, dto.getPassword());
+        log.info("비밀번호 검증 완료 - userId: {}, matched: {}", userId, matched);
         return ResponseEntity.ok(new PasswordVerifyResponseDto(matched));
     }
-
 }
