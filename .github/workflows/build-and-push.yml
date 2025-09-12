@@ -12,6 +12,9 @@ env:
   ECR_IMAGE_NAME: 004407157704.dkr.ecr.ap-northeast-2.amazonaws.com/auth-service
   GRADLE_VERSION: 7.6 #.
 
+permissions:
+  contents: write
+
 jobs:
   build-push:
     runs-on: ubuntu-latest
@@ -94,12 +97,12 @@ jobs:
       - name: Update manifest in infra and push
         env:
           IMAGE_SHA: ${{ env.IMAGE_SHA }}
-          INFRA_PAT: ${{ secrets.PAT }}
         run: |
           set -euo pipefail
           echo "=== Start update infra manifest ==="
 
-          git clone https://x-access-token:${INFRA_PAT}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git
+          # GITHUB_TOKEN 인증으로 clone
+          git clone https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git
           cd moyeorak-infra
 
           MANIFEST_PATH="k8s/auth/auth-all.yml"
@@ -126,9 +129,8 @@ jobs:
           git add "${MANIFEST_PATH}"
           git commit -m "ci: update auth-service image -> ${IMAGE_SHA}"
 
-          # origin URL 은 이미 PAT 내장 상태임
+          # origin URL은 이미 token-embedded 상태
           git remote -v
-
           echo "Attempting push..."
           git push origin main
 
