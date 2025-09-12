@@ -7,7 +7,7 @@ import com.moyeorak.auth_service.dto.UserLoginResponseDto;
 public interface AuthService {
 
     UserLoginResponseDto login(UserLoginRequestDto dto);
-    void logout(String email);
+    void logout(Long userId);
     TokenResponseDto refreshAccessToken(String refreshToken);
 
 }

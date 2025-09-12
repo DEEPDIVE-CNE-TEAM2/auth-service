@@ -43,10 +43,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public void logout(String email) {
-        User user = userRepository.findByEmail(email)
+    public void logout(Long userId) {
+        User user = userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
-
         user.setRefreshToken(null);
         userRepository.save(user);
     }
