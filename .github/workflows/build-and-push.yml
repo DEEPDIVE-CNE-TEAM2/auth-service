@@ -97,7 +97,7 @@ jobs:
       - name: Update manifest in infra and push
         env:
           IMAGE_SHA: ${{ env.IMAGE_SHA }}
-          INFRA_PAT: ${{ secrets.PAT }}
+          INFRA_PAT: ${{ secrets.CLASSIC_TOKEN }}
         run: |
           set -euo pipefail
           echo "=== Start update infra manifest ==="
