@@ -1,6 +1,5 @@
 package com.moyeorak.auth_service.config;
 
-import com.moyeorak.auth_service.security.JwtAuthFilter;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +21,6 @@ import java.util.List;
 @EnableMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
 
-    private final JwtAuthFilter jwtAuthFilter;
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -33,11 +30,8 @@ public class SecurityConfig {
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .formLogin(AbstractHttpConfigurer::disable)
 
-                // 경로별 인증 설정
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-
-                        // --- 공개 엔드포인트 ---
                         .requestMatchers(
                                 "/internal/users/**",
                                 "/api/users/signup",
@@ -46,13 +40,13 @@ public class SecurityConfig {
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/v3/api-docs.yaml",
-                                "/jwks",
-				"/auth/.well-known/**",
-				"/actuator/**"
+                                "/auth/.well-known/**",
+                                "/actuator/**",
+                                "/health"
                         ).permitAll()
-
-                        // --- 그 외 API는 JWT 인증 필요 ---
-                        .anyRequest().authenticated()
+                        //.anyRequest().authenticated()
+                        // 임시 전체 허용 나중에 삭제
+                        .anyRequest().permitAll()
                 )
 
                 // 인증 실패 / 권한 없음 처리
@@ -65,11 +59,7 @@ public class SecurityConfig {
                             // 권한 없음 → 403
                             response.sendError(HttpServletResponse.SC_FORBIDDEN, "접근 권한이 없습니다.");
                         })
-                )
-
-                // JWT 필터를 UsernamePasswordAuthenticationFilter 앞에 등록
-                .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
-
+                );
         return http.build();
     }
 
@@ -85,7 +75,8 @@ public class SecurityConfig {
     		"https://moyeorak.cloud" 
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        config.setAllowedHeaders(List.of("Authorization", "Content-Type"));
+        config.setAllowedHeaders(List.of("Authorization", "Content-Type",
+                "X-User-Id", "X-User-Role", "X-User-Region-Id"));
         config.setExposedHeaders(List.of("Content-Disposition", "Location"));
         config.setAllowCredentials(true);
         config.setMaxAge(3600L);

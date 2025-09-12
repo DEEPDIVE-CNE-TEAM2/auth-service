@@ -63,16 +63,16 @@ public class UserServiceImpl implements UserService {
 
     // 내 정보 조회
     @Override
-    public UserResponseDto getMyInfo(String email) {
-        User user = getUserByEmail(email);
+    public UserResponseDto getMyInfo(Long userId) {
+        User user = getUserById(userId);
         return UserResponseDto.fromEntity(user);
     }
 
     // 정보 수정
     @Transactional
     @Override
-    public UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto) {
-        User user = getUserByEmail(email);
+    public UserResponseDto updateUserInfo(Long userId, UserUpdateRequestDto dto) {
+        User user = getUserById(userId);
 
         updateIfChanged(dto.getEmail(), user.getEmail(), newEmail -> {
             validateDuplicateEmail(newEmail);
@@ -101,12 +101,12 @@ public class UserServiceImpl implements UserService {
     // 비번 변경
     @Transactional
     @Override
-    public void changePassword(String email, UserPasswordChangeRequestDto dto) {
-        User user = getUserByEmail(email);
+    public void changePassword(Long userId, UserPasswordChangeRequestDto dto) {
+        User user = getUserById(userId);
 
         // 현재 비밀번호 검증
         if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())) {
-            log.debug("비밀번호 변경 실패 - 현재 비밀번호 불일치. email: {}", email);
+            log.debug("비밀번호 변경 실패 - 현재 비밀번호 불일치. userId: {}", userId);
             throw new BusinessException(ErrorCode.INVALID_PASSWORD);
         }
 
@@ -127,12 +127,12 @@ public class UserServiceImpl implements UserService {
     // 회원탈퇴
     @Transactional
     @Override
-    public void deleteUser(String email, UserDeleteRequestDto dto) {
-        User user = getUserByEmail(email);
+    public void deleteUser(Long userId, UserDeleteRequestDto dto) {
+        User user = getUserById(userId);
 
         // 비밀번호 & 확인 비밀번호 일치 여부 검증
         if (!dto.getPassword().equals(dto.getConfirmPassword())) {
-            log.debug("회원탈퇴 실패 - 비밀번호 확인 불일치. email: {}", email);
+            log.debug("회원탈퇴 실패 - 비밀번호 확인 불일치. userId: {}", userId);
             throw new BusinessException(ErrorCode.PASSWORD_MISMATCH);
         }
 
@@ -144,6 +144,7 @@ public class UserServiceImpl implements UserService {
         // 탈퇴 처리
         userRepository.delete(user);
     }
+
 
 
     // 이메일 중복 여부
@@ -161,8 +162,8 @@ public class UserServiceImpl implements UserService {
     }
 
     // 사용자 단건 조회 유틸
-    private User getUserByEmail(String email) {
-        return userRepository.findByEmail(email)
+    private User getUserById(Long userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
     }
 
@@ -187,9 +188,8 @@ public class UserServiceImpl implements UserService {
 
     // 비밀번호 검증
     @Override
-    public boolean verifyPassword(String email, String password) {
-        User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new BusinessException(ErrorCode.NOT_FOUND_USER));
+    public boolean verifyPassword(Long userId, String password) {
+        User user = getUserById(userId);
         return passwordEncoder.matches(password, user.getPassword());
     }
 

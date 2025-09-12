@@ -5,18 +5,28 @@ import com.moyeorak.auth_service.dto.feign.UserDto;
 
 public interface UserService {
 
+    // 회원가입
     UserSignupResponseDto signup(UserSignupRequestDto dto);
 
-    UserResponseDto getMyInfo(String email);
+    // 내 정보 조회 (userId 기반)
+    UserResponseDto getMyInfo(Long userId);
 
-    UserResponseDto updateUserInfo(String email, UserUpdateRequestDto dto);
-    void changePassword(String email, UserPasswordChangeRequestDto dto);
-    void deleteUser(String email, UserDeleteRequestDto dto);
+    // 정보 수정 (userId 기반)
+    UserResponseDto updateUserInfo(Long userId, UserUpdateRequestDto dto);
+
+    // 비밀번호 변경 (userId 기반)
+    void changePassword(Long userId, UserPasswordChangeRequestDto dto);
+
+    // 회원탈퇴 (userId 기반)
+    void deleteUser(Long userId, UserDeleteRequestDto dto);
+
+    // 중복체크
     boolean isEmailDuplicate(String email);
-
     boolean isPhoneDuplicate(String phone);
 
-    boolean verifyPassword(String email, String password);
+    // 비밀번호 검증 (userId 기반)
+    boolean verifyPassword(Long userId, String password);
 
-    public UserDto getUserDtoById(Long id);
+    // Feign 통신용 DTO 반환 (id 기반)
+    UserDto getUserDtoById(Long id);
 }
