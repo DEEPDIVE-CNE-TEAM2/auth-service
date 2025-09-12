@@ -97,45 +97,59 @@ jobs:
           IMAGE_SHA: ${{ env.IMAGE_SHA }}
           INFRA_PAT: ${{ secrets.PAT }}
         run: |
-          set -euo pipefail
-          echo "Updating infra repo manifest to use image: ${IMAGE_SHA}"
+            set -euo pipefail
+            echo "Updating infra repo manifest to use image: ${IMAGE_SHA}"
 
-          INFRA_REPO_URL="https://x-access-token:${INFRA_PAT}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git"
-          WORKDIR="infra"
-          MANIFEST_PATH="k8s/auth/auth-all.yml"
-          BRANCH="main"
+            INFRA_REPO_URL="https://x-access-token:${INFRA_PAT}@github.com/DEEPDIVE-CNE-TEAM2/moyeorak-infra.git"
+            WORKDIR="infra"
+            MANIFEST_PATH="k8s/auth/auth-all.yml"
+            BRANCH="main"
 
-          # clone infra (depth=1)
-          git clone --depth=1 "${INFRA_REPO_URL}" "${WORKDIR}"
-          cd "${WORKDIR}" || exit 1
-          git checkout "${BRANCH}" || true
+            # debug: PAT presence
+            if [ -z "${INFRA_PAT:-}" ]; then
+            echo "ERROR: INFRA_PAT (secrets.PAT) is empty!"
+            exit 1
+            else
+            echo "INFRA_PAT length: ${#INFRA_PAT}"
+            fi
 
-          # install yq if missing
-          if ! command -v yq >/dev/null 2>&1; then
+            # clone infra (depth=1)
+            git clone --depth=1 "${INFRA_REPO_URL}" "${WORKDIR}"
+            cd "${WORKDIR}" || exit 1
+            git checkout "${BRANCH}" || true
+
+            # make sure origin uses token-embedded URL (force)
+            git remote set-url origin "${INFRA_REPO_URL}"
+            echo "git remote get-url origin: $(git remote get-url origin)"
+
+            # install yq if missing
+            if ! command -v yq >/dev/null 2>&1; then
             sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
             sudo chmod +x /usr/local/bin/yq
-          fi
+            fi
 
-          if [ ! -f "${MANIFEST_PATH}" ]; then
+            if [ ! -f "${MANIFEST_PATH}" ]; then
             echo "ERROR: ${MANIFEST_PATH} not found in infra repo"
             ls -la
             exit 1
-          fi
+            fi
 
-          # update the container image for container named "auth-service"
-          yq eval -i '(.spec.template.spec.containers[] | select(.name=="auth-service") .image) = strenv(IMAGE_SHA)' "${MANIFEST_PATH}"
+            # update the container image for container named "auth-service"
+            yq eval -i '(.spec.template.spec.containers[] | select(.name=="auth-service") .image) = strenv(IMAGE_SHA)' "${MANIFEST_PATH}"
 
-          # commit & push if changed
-          git config user.email "github-actions@github.com"
-          git config user.name "github-actions"
-          if git diff --quiet -- "${MANIFEST_PATH}"; then
+            # commit & push if changed
+            git config user.email "github-actions@github.com"
+            git config user.name "github-actions"
+            if git diff --quiet -- "${MANIFEST_PATH}"; then
             echo "No change in ${MANIFEST_PATH}"
-          else
+            else
             git add "${MANIFEST_PATH}"
             git commit -m "ci: update auth-service image -> ${IMAGE_SHA}"
-            git push "${INFRA_REPO_URL}" "${BRANCH}"
+            # push to origin (which we've set to token-embedded URL)
+            git push origin "${BRANCH}"
             echo "Pushed updated manifest to infra repo"
-          fi
+            fi
+
 
       - name: Trigger ArgoCD sync via CLI (root app)
         env:
